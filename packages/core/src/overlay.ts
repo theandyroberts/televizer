@@ -91,6 +91,7 @@ export class PresentationOverlay {
     this.mount();
     this.panel.replaceChildren();
     this.panel.dataset.orientation = model.orientation;
+    this.panel.dataset.transform = state.transform;
     this.renderKicker(state);
     if (model.kind === "element") this.renderElement(model);
     else this.renderCollection(model, state.transform);
@@ -258,9 +259,6 @@ export class PresentationOverlay {
     model: Extract<PresentationModel, { kind: "collection" }>,
     transform: TelevizerTransform,
   ): void {
-    this.panel.append(
-      node(this.document, "h2", "tv-collection-title", model.title),
-    );
     const items =
       transform === "rank"
         ? model.rankStrategy === "per-column"
@@ -271,6 +269,31 @@ export class PresentationOverlay {
             ? model.items
             : compareItemsToBest(model.items, model.rankDirection)
           : model.items;
+    const heading = node(this.document, "div", "tv-collection-heading");
+    const title = node(this.document, "h2", "tv-collection-title", model.title);
+    title.dataset.fit =
+      model.title.length > 22
+        ? "tight"
+        : model.title.length > 14
+          ? "compact"
+          : "normal";
+    heading.append(title);
+    if (transform === "difference" && model.rankStrategy === "within-collection") {
+      const best = items.find(
+        (item) => item.numericValue != null && item.differenceFromBest === 0,
+      );
+      if (best) {
+        heading.append(
+          node(
+            this.document,
+            "span",
+            "tv-comparison-baseline",
+            `vs ${compactPresentationValue(best.value)}`,
+          ),
+        );
+      }
+    }
+    this.panel.append(heading);
     const list = node(this.document, "div", "tv-items");
     list.dataset.orientation = model.orientation;
     items.forEach((item) => {
@@ -446,23 +469,66 @@ function presentationValue(
   }
   if (transform === "difference") {
     if (item.differenceFromBest == null) return "—";
-    const numeric = item.value.match(/[−–—-]?\d[\d,]*(?:\.\d+)?/);
-    const prefix = numeric ? item.value.slice(0, numeric.index).trim() : "";
-    const suffix = numeric
-      ? item.value.slice((numeric.index ?? 0) + numeric[0].length).trim()
-      : "";
+    if (item.differenceFromBest === 0) return "--";
+    const { prefix, suffix } = numericParts(item.value);
     return formatNumber(item.differenceFromBest, suffix, prefix);
   }
   return item.value;
 }
 
 function formatNumber(value: number, suffix: string, prefix: string): string {
-  const absolute = Math.abs(value);
+  const compact = compactBytes(Math.abs(value), suffix);
+  const absolute = compact.value;
   const decimals = Number.isInteger(absolute) ? 0 : absolute < 10 ? 1 : 0;
   const number = absolute.toFixed(decimals);
   const sign = value < 0 ? "−" : "";
-  const suffixSeparator = suffix && suffix !== "%" ? " " : "";
-  return `${sign}${prefix}${number}${suffixSeparator}${suffix}`;
+  const renderedSuffix = compact.suffix;
+  const suffixSeparator = renderedSuffix && !isTightUnit(renderedSuffix) ? " " : "";
+  return `${sign}${prefix}${number}${suffixSeparator}${renderedSuffix}`;
+}
+
+function compactPresentationValue(value: string): string {
+  const numeric = value.match(/[−–—-]?\d[\d,]*(?:\.\d+)?/);
+  if (!numeric) return value;
+  const parsed = Number(numeric[0].replaceAll(",", "").replace(/[−–—]/g, "-"));
+  if (!Number.isFinite(parsed)) return value;
+  const { prefix, suffix } = numericParts(value);
+  return formatNumber(parsed, suffix, prefix);
+}
+
+function numericParts(value: string): { prefix: string; suffix: string } {
+  const numeric = value.match(/[−–—-]?\d[\d,]*(?:\.\d+)?/);
+  return {
+    prefix: numeric ? value.slice(0, numeric.index).trim() : "",
+    suffix: numeric
+      ? value.slice((numeric.index ?? 0) + numeric[0].length).trim()
+      : "",
+  };
+}
+
+function compactBytes(
+  value: number,
+  suffix: string,
+): { value: number; suffix: string } {
+  const normalized = suffix.replaceAll(" ", "");
+  const match = normalized.match(/^([kmgtpe])?b$/i);
+  if (!match) return { value, suffix };
+
+  const units = ["B", "KB", "MB", "GB", "TB", "PB", "EB"];
+  const unitIndex = match[1]
+    ? ["k", "m", "g", "t", "p", "e"].indexOf(match[1].toLowerCase()) + 1
+    : 0;
+  let compactValue = value;
+  let compactIndex = unitIndex;
+  while (compactValue >= 1000 && compactIndex < units.length - 1) {
+    compactValue /= 1000;
+    compactIndex += 1;
+  }
+  return { value: compactValue, suffix: units[compactIndex] ?? suffix };
+}
+
+function isTightUnit(suffix: string): boolean {
+  return /^(?:%|ms|s|b|kb|mb|gb|tb|pb|eb)$/i.test(suffix);
 }
 
 function pointOnRectEdge(

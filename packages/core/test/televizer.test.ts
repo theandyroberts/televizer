@@ -237,7 +237,10 @@ describe("Televizer viewport lifecycle", () => {
     televizer.setTransform("difference");
     expect(
       Array.from(shadow.querySelectorAll(".tv-item-value"), (node) => node.textContent),
-    ).toEqual(["−20 ms", "0 ms"]);
+    ).toEqual(["−20ms", "--"]);
+    expect(
+      shadow.querySelector<HTMLElement>(".tv-comparison-baseline")!.textContent,
+    ).toBe("vs 18ms");
 
     document.dispatchEvent(
       new KeyboardEvent("keydown", {
@@ -264,6 +267,30 @@ describe("Televizer viewport lifecycle", () => {
     expect(
       Array.from(shadow.querySelectorAll(".tv-item-value"), (node) => node.textContent),
     ).toEqual(["−111%", "0%"]);
+  });
+
+  it("compacts byte quantities in the gap presentation", () => {
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      `<table data-televizer-rank="higher">
+        <thead><tr><th>CDN</th><th id="capacity">Transfer capacity</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Adobe</th><td>14000000000000 B</td></tr>
+          <tr><th scope="row">Cloudflare</th><td>10000000000000 B</td></tr>
+        </tbody>
+      </table>`,
+    );
+    televizer = new Televizer({ document }).mount();
+    televizer.focus(document.querySelector<HTMLElement>("#capacity")!);
+    televizer.setTransform("difference");
+    const shadow = document.querySelector("televizer-overlay")!.shadowRoot!;
+
+    expect(
+      shadow.querySelector<HTMLElement>(".tv-comparison-baseline")!.textContent,
+    ).toBe("vs 14TB");
+    expect(
+      Array.from(shadow.querySelectorAll(".tv-item-value"), (node) => node.textContent),
+    ).toEqual(["--", "−4TB"]);
   });
 
   it("compares a row cell-by-cell against each column's best", () => {

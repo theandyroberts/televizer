@@ -138,11 +138,43 @@ export const overlayStyles = `
     font-size: clamp(15px, 1.7vw, 22px);
     font-weight: 650;
   }
+  .tv-collection-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
   .tv-collection-title {
-    margin: 0 0 18px;
+    flex: 1 1 220px;
+    min-width: 0;
+    margin: 0;
     font-size: clamp(27px, 4vw, 54px);
     line-height: 1;
     letter-spacing: -.045em;
+  }
+  .tv-panel[data-transform="difference"] .tv-collection-heading {
+    flex-wrap: wrap;
+  }
+  .tv-panel[data-transform="difference"] .tv-collection-title {
+    font-size: clamp(30px, 4vw, 44px);
+    white-space: nowrap;
+  }
+  .tv-panel[data-transform="difference"] .tv-collection-title[data-fit="compact"] {
+    font-size: clamp(27px, 3.5vw, 38px);
+  }
+  .tv-panel[data-transform="difference"] .tv-collection-title[data-fit="tight"] {
+    font-size: clamp(23px, 3vw, 33px);
+  }
+  .tv-comparison-baseline {
+    flex: 0 0 auto;
+    color: #fde047;
+    font-size: clamp(26px, 3.6vw, 36px);
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+    letter-spacing: -.035em;
+    line-height: 1;
+    white-space: nowrap;
   }
   .tv-items[data-orientation="horizontal"] {
     display: grid;
