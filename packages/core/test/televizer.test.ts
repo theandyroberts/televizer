@@ -18,6 +18,21 @@ afterEach(() => {
 });
 
 describe("Televizer hover acquisition", () => {
+  it("recognizes the physical Option+T shortcut on macOS", () => {
+    televizer = new Televizer({ document }).mount();
+
+    document.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        bubbles: true,
+        altKey: true,
+        code: "KeyT",
+        key: "†",
+      }),
+    );
+
+    expect(televizer.getState().active).toBe(true);
+  });
+
   it("waits about one second before the first presentation", () => {
     vi.useFakeTimers();
     televizer = new Televizer({ document }).mount();

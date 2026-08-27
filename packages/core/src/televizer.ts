@@ -293,7 +293,7 @@ export class Televizer {
 
   private readonly onKeyDown = (event: KeyboardEvent): void => {
     const key = event.key.toLowerCase();
-    if (event.altKey && key === "t") {
+    if (event.altKey && (event.code === "KeyT" || key === "t")) {
       event.preventDefault();
       event.stopPropagation();
       this.toggle();
