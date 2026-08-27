@@ -340,7 +340,7 @@ describe("Televizer viewport lifecycle", () => {
     ).toEqual(["0%", "−3.2%"]);
   });
 
-  it("lifts selected text as a quote after hover intent", () => {
+  it("starts quote intent only after selection drag release", () => {
     vi.useFakeTimers();
     document.body.insertAdjacentHTML(
       "beforeend",
@@ -366,15 +366,45 @@ describe("Televizer viewport lifecycle", () => {
     televizer = new Televizer({ document }).mount();
     televizer.start();
     copy.dispatchEvent(
-      new MouseEvent("mouseover", {
+      new MouseEvent("pointerdown", {
         bubbles: true,
-        clientX: 100,
+        button: 0,
+        buttons: 1,
+        clientX: 40,
+        clientY: 50,
+      }),
+    );
+    copy.dispatchEvent(
+      new MouseEvent("pointermove", {
+        bubbles: true,
+        buttons: 1,
+        clientX: 160,
         clientY: 50,
       }),
     );
     document.dispatchEvent(new Event("selectionchange"));
     vi.advanceTimersByTime(1050);
     const shadow = document.querySelector("televizer-overlay")!.shadowRoot!;
+
+    expect(shadow.querySelector<HTMLElement>(".tv-stage")!.dataset.visible).not.toBe(
+      "true",
+    );
+    expect(shadow.querySelector<HTMLElement>(".tv-intent")!.dataset.visible).not.toBe(
+      "true",
+    );
+
+    copy.dispatchEvent(
+      new MouseEvent("pointerup", {
+        bubbles: true,
+        button: 0,
+        clientX: 160,
+        clientY: 50,
+      }),
+    );
+    expect(shadow.querySelector<HTMLElement>(".tv-intent")!.dataset.visible).toBe(
+      "true",
+    );
+    vi.advanceTimersByTime(1050);
 
     expect(
       shadow.querySelector<HTMLElement>(".tv-element-title")!.textContent,

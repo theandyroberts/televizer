@@ -42,6 +42,7 @@ export class Televizer {
   private currentTarget: PresentationTarget | null = null;
   private selectionTarget: SelectionTarget | null = null;
   private pointerPosition = { x: 0, y: 0 };
+  private primaryPointerDown = false;
   private pointerSuppressedUntil = 0;
   private helperVisible = false;
   private state: TelevizerState = {
@@ -86,6 +87,8 @@ export class Televizer {
     this.document.addEventListener("mouseleave", this.onDocumentLeave, true);
     this.document.addEventListener("selectionchange", this.onSelectionChange);
     this.document.addEventListener("pointerdown", this.onPointerDown, true);
+    this.document.addEventListener("pointerup", this.onPointerUp, true);
+    this.document.addEventListener("pointercancel", this.onPointerCancel, true);
     this.document.addEventListener("scroll", this.onViewportChange, true);
     this.document.defaultView?.addEventListener("resize", this.onViewportChange);
     this.overlay.mount();
@@ -102,6 +105,8 @@ export class Televizer {
     this.document.removeEventListener("mouseleave", this.onDocumentLeave, true);
     this.document.removeEventListener("selectionchange", this.onSelectionChange);
     this.document.removeEventListener("pointerdown", this.onPointerDown, true);
+    this.document.removeEventListener("pointerup", this.onPointerUp, true);
+    this.document.removeEventListener("pointercancel", this.onPointerCancel, true);
     this.document.removeEventListener("scroll", this.onViewportChange, true);
     this.document.defaultView?.removeEventListener("resize", this.onViewportChange);
     this.intent.reset();
@@ -196,26 +201,19 @@ export class Televizer {
     if (this.currentTarget && now < this.pointerSuppressedUntil) return;
     this.pointerPosition = { x: event.clientX, y: event.clientY };
     this.overlay.moveIntent(event.clientX, event.clientY);
+    if (this.primaryPointerDown || event.buttons === 1) {
+      this.intent.move(null);
+      return;
+    }
     const target = this.resolver.resolve(event.target);
-    this.intent.move(
-      this.resolveSelectionTarget(event.target, event.clientX, event.clientY) ??
-        target,
-    );
+    this.intent.move(target);
   }
 
   private readonly onSelectionChange = (): void => {
-    if (!this.state.active) return;
-    const origin = this.document.elementFromPoint?.(
-      this.pointerPosition.x,
-      this.pointerPosition.y,
-    );
-    if (!origin) return;
-    const selection = this.resolveSelectionTarget(
-      origin,
-      this.pointerPosition.x,
-      this.pointerPosition.y,
-    );
-    if (selection) this.intent.move(selection);
+    const selection = this.getDocumentSelection();
+    if (!selection || selection.isCollapsed || selection.rangeCount === 0) {
+      this.selectionTarget = null;
+    }
   };
 
   private resolveSelectionTarget(
@@ -224,7 +222,7 @@ export class Televizer {
     y: number,
   ): SelectionTarget | null {
     if (!(origin instanceof Node)) return null;
-    const selection = this.document.getSelection();
+    const selection = this.getDocumentSelection();
     if (!selection || selection.isCollapsed || selection.rangeCount === 0) {
       this.selectionTarget = null;
       return null;
@@ -269,6 +267,14 @@ export class Televizer {
     return this.selectionTarget;
   }
 
+  private getDocumentSelection(): Selection | null {
+    return (
+      this.document.defaultView?.getSelection() ??
+      this.document.getSelection?.() ??
+      null
+    );
+  }
+
   private readonly onDocumentLeave = (event: MouseEvent): void => {
     if (!this.state.active) return;
     if (
@@ -277,14 +283,38 @@ export class Televizer {
     ) {
       return;
     }
+    this.primaryPointerDown = false;
     this.intent.release();
   };
 
   private readonly onPointerDown = (event: PointerEvent): void => {
     if (event.button !== 0 || !this.state.active) return;
     if (this.overlay.ownsEvent(event)) return;
+    this.primaryPointerDown = true;
+    this.intent.move(null);
     this.overlay.hideHelp();
     if (this.currentTarget) this.dismissPresentation();
+  };
+
+  private readonly onPointerUp = (event: PointerEvent): void => {
+    if (event.button !== 0) return;
+    const wasPrimaryPointerDown = this.primaryPointerDown;
+    this.primaryPointerDown = false;
+    if (!wasPrimaryPointerDown || !this.state.active) return;
+    if (this.overlay.ownsEvent(event)) return;
+    this.pointerPosition = { x: event.clientX, y: event.clientY };
+    this.overlay.moveIntent(event.clientX, event.clientY);
+    const selection = this.resolveSelectionTarget(
+      event.target,
+      event.clientX,
+      event.clientY,
+    );
+    if (selection) this.intent.move(selection);
+  };
+
+  private readonly onPointerCancel = (): void => {
+    this.primaryPointerDown = false;
+    this.intent.move(null);
   };
 
   private readonly onViewportChange = (): void => {

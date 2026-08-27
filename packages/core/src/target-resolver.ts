@@ -14,11 +14,6 @@ const SEMANTIC_SELECTOR = [
   "iframe",
   "button",
   "a",
-  "h1",
-  "h2",
-  "h3",
-  "h4",
-  "p",
   "pre",
   "code",
   "li",
@@ -46,6 +41,8 @@ export class TargetResolver {
 
     const explicit = origin.closest<HTMLElement>(this.explicitSelector);
     if (explicit) return explicit;
+
+    if (origin.closest("h1,h2,h3,h4,h5,h6,p")) return null;
 
     const candidates: HTMLElement[] = [];
     let current: Element | null = origin;

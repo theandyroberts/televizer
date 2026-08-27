@@ -63,7 +63,9 @@ surface.
 - An ordinary table value presents only that cell.
 - A row header presents the full row.
 - A column header presents the full column.
-- Selecting text and pausing over the selection presents it as a quote.
+- Headings and paragraphs are inert unless explicitly marked as targets.
+- Selecting text with the pointer starts quote intent only when the selection
+  swipe is released; leave the pointer still to present the quote.
 - Images, native video, and embedded frames open in Televizer's media stage.
 - Moving to a new ordinary target returns to element mode, so row and column
   scope cannot accidentally leak into the next presentation.

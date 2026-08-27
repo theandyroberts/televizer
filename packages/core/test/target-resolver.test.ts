@@ -42,4 +42,18 @@ describe("TargetResolver", () => {
       expect(resolver.resolve(media)).toBe(media);
     });
   });
+
+  it("keeps headings and paragraphs inert unless explicitly targeted", () => {
+    document.body.innerHTML = `
+      <section id="copy"><h2 id="heading">A heading</h2><p id="paragraph"><strong id="word">Paragraph copy</strong></p></section>
+      <p id="explicit" data-televizer-target>Deliberate target</p>
+    `;
+    const resolver = new TargetResolver();
+
+    expect(resolver.resolve(document.querySelector("#heading"))).toBeNull();
+    expect(resolver.resolve(document.querySelector("#word"))).toBeNull();
+    expect(resolver.resolve(document.querySelector("#explicit"))).toBe(
+      document.querySelector("#explicit"),
+    );
+  });
 });
