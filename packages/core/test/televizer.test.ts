@@ -130,7 +130,7 @@ describe("Televizer viewport lifecycle", () => {
     expect(stage.dataset.visible).toBe("true");
   });
 
-  it("keeps the presentation open while its ordinal control is used", () => {
+  it("keeps operator hints hidden until H is pressed", () => {
     document.body.insertAdjacentHTML(
       "beforeend",
       `<table data-televizer-rank="higher">
@@ -146,29 +146,30 @@ describe("Televizer viewport lifecycle", () => {
     televizer.setScope("row");
     const shadow = document.querySelector("televizer-overlay")!.shadowRoot!;
     const stage = shadow.querySelector<HTMLElement>(".tv-stage")!;
-    const toggle = shadow.querySelector<HTMLButtonElement>(".tv-rank-toggle")!;
+    const helper = shadow.querySelector<HTMLElement>(".tv-helper")!;
 
-    toggle.dispatchEvent(
-      new MouseEvent("pointerdown", {
-        bubbles: true,
-        button: 0,
-        composed: true,
-      }),
+    expect(shadow.querySelector(".tv-transform-toggle")).toBeNull();
+    expect(helper.dataset.visible).not.toBe("true");
+    document.dispatchEvent(
+      new KeyboardEvent("keydown", { bubbles: true, key: "h", code: "KeyH" }),
     );
+    expect(helper.dataset.visible).toBe("true");
+    expect(helper.textContent).toContain("5 pct");
     expect(stage.dataset.visible).toBe("true");
-    toggle.click();
 
-    expect(televizer.getState().transform).toBe("rank");
-    expect(stage.dataset.visible).toBe("true");
+    document.dispatchEvent(
+      new KeyboardEvent("keydown", { bubbles: true, key: "h", code: "KeyH" }),
+    );
+    expect(helper.dataset.visible).toBe("false");
   });
 
-  it("does not show the rank toggle for an element fallback", () => {
+  it("does not show transform controls for an element fallback", () => {
     televizer = new Televizer({ document }).mount();
     televizer.focus(document.querySelector<HTMLElement>("#metric")!);
     televizer.setScope("row");
     const shadow = document.querySelector("televizer-overlay")!.shadowRoot!;
 
-    expect(shadow.querySelector(".tv-rank-toggle")).toBeNull();
+    expect(shadow.querySelector(".tv-transform-toggle")).toBeNull();
   });
 
   it("returns an ordinary table cell to element scope", () => {
@@ -209,6 +210,7 @@ describe("Televizer viewport lifecycle", () => {
     );
     expect(help.dataset.visible).toBe("true");
     expect(help.textContent).toContain("Percent from best");
+    expect(help.textContent).toContain("On-air hints");
     expect(help.textContent).toContain("Select text");
 
     document.dispatchEvent(
@@ -237,7 +239,14 @@ describe("Televizer viewport lifecycle", () => {
       Array.from(shadow.querySelectorAll(".tv-item-value"), (node) => node.textContent),
     ).toEqual(["−20 ms", "0 ms"]);
 
-    televizer.setTransform("percent");
+    document.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        bubbles: true,
+        code: "Digit5",
+        key: "5",
+      }),
+    );
+    expect(televizer.getState().transform).toBe("percent");
     expect(
       Array.from(shadow.querySelectorAll(".tv-item-value"), (node) => node.textContent),
     ).toEqual(["−111%", "0%"]);

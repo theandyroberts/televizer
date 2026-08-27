@@ -43,6 +43,7 @@ export class Televizer {
   private selectionTarget: SelectionTarget | null = null;
   private pointerPosition = { x: 0, y: 0 };
   private pointerSuppressedUntil = 0;
+  private helperVisible = false;
   private state: TelevizerState = {
     active: false,
     scope: "element",
@@ -57,7 +58,6 @@ export class Televizer {
       options.targetSelectors,
     );
     this.overlay = new PresentationOverlay(this.document, {
-      onSetTransform: (transform) => this.setTransform(transform),
       onCloseHelp: () => this.overlay.hideHelp(),
     });
     this.intent = new HoverIntent({
@@ -124,6 +124,7 @@ export class Televizer {
     this.state = { active: false, scope: "element", transform: "values" };
     delete this.document.documentElement.dataset.televizerActive;
     this.currentTarget = null;
+    this.helperVisible = false;
     this.intent.reset();
     this.overlay.hide();
     this.overlay.hideHelp();
@@ -310,8 +311,10 @@ export class Televizer {
       key === "r" ||
       key === "c" ||
       key === "1" ||
+      key === "5" ||
       key === "%" ||
       key === "-" ||
+      key === "h" ||
       key === "?"
     ) {
       event.preventDefault();
@@ -321,12 +324,16 @@ export class Televizer {
     else if (key === "r") this.setScope("row");
     else if (key === "c") this.setScope("column");
     else if (key === "1") this.toggleRank();
-    else if (key === "%") {
+    else if (key === "5" || key === "%") {
       this.setTransform(this.state.transform === "percent" ? "values" : "percent");
     } else if (key === "-") {
       this.setTransform(
         this.state.transform === "difference" ? "values" : "difference",
       );
+    } else if (key === "h") {
+      if (!this.currentTarget) return;
+      this.helperVisible = !this.helperVisible;
+      this.overlay.setHelperVisible(this.helperVisible);
     } else if (key === "?") {
       const show = !this.overlay.isHelpVisible();
       this.dismissPresentation();
@@ -351,6 +358,8 @@ export class Televizer {
       this.overlay.flash(inferredScope.toUpperCase());
       this.emitState();
     }
+    this.helperVisible = false;
+    this.overlay.setHelperVisible(false);
     this.currentTarget = target;
     this.refreshPresentation();
   }
@@ -358,6 +367,7 @@ export class Televizer {
   private dismissPresentation(): void {
     this.currentTarget = null;
     this.pointerSuppressedUntil = 0;
+    this.helperVisible = false;
     this.intent.reset();
     this.overlay.hide();
     if (this.state.scope !== "element" || this.state.transform !== "values") {

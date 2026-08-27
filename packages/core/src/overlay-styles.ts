@@ -85,7 +85,6 @@ export const overlayStyles = `
     transform-origin: var(--tv-origin-x, 50%) var(--tv-origin-y, 50%);
     transition: left 260ms cubic-bezier(.2,.8,.2,1), top 260ms cubic-bezier(.2,.8,.2,1), opacity 160ms ease, transform 260ms cubic-bezier(.2,.8,.2,1);
   }
-  .tv-panel[data-interactive="true"] { pointer-events: auto; }
   .tv-stage[data-visible="true"] .tv-panel { opacity: 1; transform: none; }
   .tv-panel[data-orientation="horizontal"] {
     width: min(1120px, calc(100vw - 56px));
@@ -108,46 +107,10 @@ export const overlayStyles = `
   .tv-brand { color: var(--tv-accent); }
   .tv-kicker-controls {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
     justify-content: flex-end;
-    gap: 7px;
   }
   .tv-scope { white-space: nowrap; }
-  .tv-transform-toggle {
-    all: unset;
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    border: 1px solid rgba(148,163,184,.3);
-    border-radius: 9px;
-    padding: 5px 8px;
-    background: rgba(15,23,42,.72);
-    color: #cbd5e1;
-    cursor: pointer;
-    font: inherit;
-    letter-spacing: .08em;
-  }
-  .tv-transform-toggle:hover,
-  .tv-transform-toggle:focus-visible {
-    border-color: rgba(103,232,249,.72);
-    box-shadow: 0 0 0 2px rgba(34,211,238,.16);
-    color: #fff;
-  }
-  .tv-transform-toggle[data-active="true"] {
-    border-color: rgba(250,204,21,.58);
-    background: rgba(113,63,18,.28);
-    color: #fde68a;
-  }
-  .tv-transform-toggle kbd {
-    display: grid;
-    min-width: 22px;
-    height: 22px;
-    place-items: center;
-    border: 1px solid currentColor;
-    border-radius: 5px;
-    font: 800 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
-  }
   .tv-element-title {
     margin: 0 0 8px;
     color: #a7b4c8;
@@ -257,6 +220,22 @@ export const overlayStyles = `
     font-size: 12px;
     font-weight: 700;
   }
+  .tv-helper {
+    position: fixed;
+    overflow: hidden;
+    color: rgba(184,199,220,.52);
+    font-size: 8px;
+    font-weight: 650;
+    letter-spacing: .075em;
+    line-height: 1.35;
+    opacity: 0;
+    text-align: right;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transition: opacity 100ms ease;
+  }
+  .tv-helper[data-visible="true"] { opacity: 1; }
   .tv-help {
     position: fixed;
     top: 76px;
@@ -341,6 +320,6 @@ export const overlayStyles = `
   }
   .tv-toast[data-visible="true"] { opacity: 1; transform: translate(-50%, 0); }
   @media (prefers-reduced-motion: reduce) {
-    .tv-dim, .tv-source, .tv-connector, .tv-panel, .tv-toast { transition-duration: 1ms !important; }
+    .tv-dim, .tv-source, .tv-connector, .tv-panel, .tv-helper, .tv-toast { transition-duration: 1ms !important; }
   }
 `;

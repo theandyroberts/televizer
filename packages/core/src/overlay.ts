@@ -10,7 +10,6 @@ import type {
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 interface PresentationOverlayActions {
-  onSetTransform: (transform: TelevizerTransform) => void;
   onCloseHelp: () => void;
 }
 
@@ -33,6 +32,7 @@ export class PresentationOverlay {
   private readonly panel: HTMLElement;
   private readonly line: SVGLineElement;
   private readonly intentIndicator: HTMLElement;
+  private readonly helper: HTMLElement;
   private readonly help: HTMLElement;
   private readonly toast: HTMLElement;
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
@@ -61,6 +61,7 @@ export class PresentationOverlay {
     this.panel = node(document, "section", "tv-panel");
     this.panel.setAttribute("role", "status");
     this.panel.setAttribute("aria-live", "polite");
+    this.helper = this.createHelper();
     this.help = this.createHelp();
     this.toast = node(document, "div", "tv-toast");
     this.stage.append(
@@ -69,6 +70,7 @@ export class PresentationOverlay {
       this.source,
       this.intentIndicator,
       this.panel,
+      this.helper,
       this.help,
       this.toast,
     );
@@ -89,20 +91,20 @@ export class PresentationOverlay {
     this.mount();
     this.panel.replaceChildren();
     this.panel.dataset.orientation = model.orientation;
-    const canToggleRank = model.kind === "collection";
-    this.panel.dataset.interactive = String(canToggleRank);
-    this.renderKicker(state, canToggleRank);
+    this.renderKicker(state);
     if (model.kind === "element") this.renderElement(model);
     else this.renderCollection(model, state.transform);
 
     this.placeSource(model.sourceRect);
     this.placePanel(model);
+    this.placeHelper();
     this.stage.dataset.visible = "true";
     this.startConnectorTracking();
   }
 
   hide(): void {
     this.stage.dataset.visible = "false";
+    this.setHelperVisible(false);
     this.hideIntent();
     this.stopConnectorTracking();
   }
@@ -148,6 +150,14 @@ export class PresentationOverlay {
     return this.help.dataset.visible === "true";
   }
 
+  setHelperVisible(visible: boolean): void {
+    this.helper.dataset.visible = String(visible);
+    if (visible) {
+      this.placeHelper();
+      this.startConnectorTracking();
+    }
+  }
+
   ownsEvent(event: Event): boolean {
     return event.composedPath().includes(this.host);
   }
@@ -179,8 +189,9 @@ export class PresentationOverlay {
       ["R", "Row"],
       ["C", "Column"],
       ["1", "Ordinal ranks"],
-      ["%", "Percent from best"],
+      ["5", "Percent from best"],
       ["−", "Value from best"],
+      ["H", "On-air hints"],
       ["?", "Help"],
     ];
     const list = node(this.document, "div", "tv-help-list");
@@ -202,45 +213,31 @@ export class PresentationOverlay {
     return help;
   }
 
-  private renderKicker(state: TelevizerState, canToggleRank: boolean): void {
+  private createHelper(): HTMLElement {
+    const helper = node(this.document, "aside", "tv-helper");
+    helper.setAttribute("role", "note");
+    helper.textContent = "H hide  ·  E element  ·  R row  ·  C column  ·  1 ranks  ·  5 pct  ·  − gap";
+    return helper;
+  }
+
+  private renderKicker(state: TelevizerState): void {
     const kicker = node(this.document, "div", "tv-kicker");
     kicker.append(node(this.document, "span", "tv-brand", "TELEVIZER"));
     const controls = node(this.document, "div", "tv-kicker-controls");
-    controls.append(node(this.document, "span", "tv-scope", state.scope));
-    if (canToggleRank) {
-      const transforms: Array<{
-        key: string;
-        label: string;
-        transform: Exclude<TelevizerTransform, "values">;
-      }> = [
-        { key: "1", label: "Ranks", transform: "rank" },
-        { key: "%", label: "% gap", transform: "percent" },
-        { key: "−", label: "Gap", transform: "difference" },
-      ];
-      transforms.forEach(({ key, label, transform }) => {
-        const active = state.transform === transform;
-        const button = node(
-          this.document,
-          "button",
-          `tv-transform-toggle${transform === "rank" ? " tv-rank-toggle" : ""}`,
-        );
-        button.type = "button";
-        button.dataset.active = String(active);
-        button.setAttribute(
-          "aria-label",
-          active ? "Show original values" : `Show ${label.toLowerCase()}`,
-        );
-        button.setAttribute("aria-pressed", String(active));
-        button.append(
-          node(this.document, "kbd", "", key),
-          node(this.document, "span", "", label),
-        );
-        button.addEventListener("click", () => {
-          this.actions.onSetTransform(active ? "values" : transform);
-        });
-        controls.append(button);
-      });
-    }
+    const transformLabels: Record<TelevizerTransform, string> = {
+      values: "",
+      rank: " · ordinal",
+      difference: " · gap",
+      percent: " · pct",
+    };
+    controls.append(
+      node(
+        this.document,
+        "span",
+        "tv-scope",
+        `${state.scope}${transformLabels[state.transform]}`,
+      ),
+    );
     kicker.append(controls);
     this.panel.append(kicker);
   }
@@ -368,6 +365,28 @@ export class PresentationOverlay {
     const sourceCenterY = source.top + source.height / 2;
     this.panel.style.setProperty("--tv-origin-x", `${sourceCenterX - left}px`);
     this.panel.style.setProperty("--tv-origin-y", `${sourceCenterY - top}px`);
+  }
+
+  private placeHelper(): void {
+    const view = this.document.defaultView;
+    if (!view) return;
+    const left = Number.parseFloat(this.panel.style.left) || 0;
+    let top = Number.parseFloat(this.panel.style.top) || 0;
+    const panelWidth = this.panel.offsetWidth;
+    const panelHeight = this.panel.offsetHeight;
+    const helperHeight = 18;
+    if (
+      this.helper.dataset.visible === "true" &&
+      top + panelHeight + helperHeight + 10 > view.innerHeight
+    ) {
+      top = Math.max(8, view.innerHeight - panelHeight - helperHeight - 10);
+      this.panel.style.top = `${top}px`;
+    }
+    Object.assign(this.helper.style, {
+      left: `${left}px`,
+      top: `${top + panelHeight + 6}px`,
+      width: `${panelWidth}px`,
+    });
   }
 
   private placeConnector(): void {

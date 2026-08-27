@@ -44,13 +44,15 @@ Televizer off.
 | `R` | Expand the current table cell into its row |
 | `C` | Expand the current table cell into its column |
 | `1` | Toggle ordinal ranks without reordering the source |
-| `%` | Toggle percentage disadvantage from the best value |
+| `5` or `%` | Toggle percentage disadvantage from the best value |
 | `-` | Toggle absolute disadvantage from the best value |
+| `H` | Toggle a tiny on-air command footnote below the presentation |
 | `?` | Open or close the compact help panel |
 
-Row and column presentations also provide clickable `Ranks`, `% gap`, and
-`Gap` controls. This is useful when keyboard focus belongs to another
-application surface.
+Presentations contain no operator controls by default. Press `H` only when a
+small reminder is useful; the right-aligned footnote sits outside the lower
+border and disappears with the presentation. Use `?` for the complete help
+surface.
 
 ### Pointing semantics
 

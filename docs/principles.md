@@ -8,8 +8,9 @@ The first product boundary is intentionally small:
 - `R` — lift the current row.
 - `C` — lift the current column.
 - `1` — toggle the lifted numeric values into ordinal positions.
-- `%` — show relative disadvantage from the best comparable value.
+- `5` or `%` — show relative disadvantage from the best comparable value.
 - `-` — show absolute disadvantage from the best comparable value.
+- `H` — temporarily reveal the tiny on-air command footnote.
 - `?` — show the compact command reference.
 - Select and pause — lift selected text as a quote.
 
