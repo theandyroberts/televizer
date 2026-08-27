@@ -11,7 +11,9 @@ export { inferScopeFromTableTarget, resolveTableContext } from "./table-context"
 export type {
   CollectionPresentation,
   ElementPresentation,
+  MediaPresentation,
   PresentationItem,
+  PresentationMediaType,
   PresentationModel,
   RankDirection,
   TableContext,

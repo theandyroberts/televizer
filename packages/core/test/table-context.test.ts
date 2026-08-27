@@ -107,3 +107,75 @@ describe("native table context", () => {
     }
   });
 });
+
+describe("media presentation models", () => {
+  it("builds a zoomable image model with its caption", () => {
+    document.body.innerHTML = `
+      <figure data-televizer-label="Gap comparison">
+        <img id="image" src="/gap.png" alt="Gap view" />
+        <figcaption>The closest CDN is the comparison baseline.</figcaption>
+      </figure>
+    `;
+
+    expect(
+      buildPresentationModel(
+        document.querySelector<HTMLElement>("#image")!,
+        "element",
+      ),
+    ).toMatchObject({
+      kind: "media",
+      mediaType: "image",
+      title: "Gap comparison",
+      caption: "The closest CDN is the comparison baseline.",
+      src: "http://localhost:3000/gap.png",
+      alt: "Gap view",
+    });
+  });
+
+  it("captures native video playback state", () => {
+    document.body.innerHTML = `
+      <video id="video" src="/flower.mp4" muted loop title="Flower time-lapse"></video>
+    `;
+    const video = document.querySelector<HTMLVideoElement>("#video")!;
+    video.currentTime = 2.5;
+    video.muted = true;
+
+    expect(buildPresentationModel(video, "element")).toMatchObject({
+      kind: "media",
+      mediaType: "video",
+      title: "Flower time-lapse",
+      src: "http://localhost:3000/flower.mp4",
+      playback: {
+        currentTime: 2.5,
+        paused: true,
+        muted: true,
+        loop: true,
+        playbackRate: 1,
+        volume: 1,
+      },
+    });
+  });
+
+  it("builds an embedded media model without inspecting its contents", () => {
+    document.body.innerHTML = `
+      <iframe id="embed" src="https://example.com/embed/42" title="Embedded demo" allow="fullscreen" sandbox allowfullscreen></iframe>
+    `;
+
+    expect(
+      buildPresentationModel(
+        document.querySelector<HTMLElement>("#embed")!,
+        "element",
+      ),
+    ).toMatchObject({
+      kind: "media",
+      mediaType: "embed",
+      title: "Embedded demo",
+      src: "https://example.com/embed/42",
+      embed: {
+        allow: "fullscreen",
+        sandbox: "",
+        allowFullscreen: true,
+      },
+    });
+  });
+});

@@ -25,4 +25,21 @@ describe("TargetResolver", () => {
       document.querySelector("#command"),
     );
   });
+
+  it("recognizes image, video, and iframe media without text content", () => {
+    document.body.innerHTML = `
+      <img id="image" src="/gap.png" alt="Gap comparison" />
+      <video id="video" src="/flower.mp4"></video>
+      <iframe id="embed" src="https://example.com/embed"></iframe>
+    `;
+    const resolver = new TargetResolver();
+    ["image", "video", "embed"].forEach((id) => {
+      const media = document.querySelector<HTMLElement>(`#${id}`)!;
+      Object.defineProperty(media, "getBoundingClientRect", {
+        configurable: true,
+        value: () => new DOMRect(10, 10, 320, 180),
+      });
+      expect(resolver.resolve(media)).toBe(media);
+    });
+  });
 });

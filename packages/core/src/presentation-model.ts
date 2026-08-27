@@ -4,9 +4,90 @@ import { resolveTableContext } from "./table-context";
 import type {
   CollectionPresentation,
   ElementPresentation,
+  MediaPresentation,
   PresentationModel,
   TelevizerScope,
 } from "./types";
+
+function mediaModel(element: HTMLElement): MediaPresentation | null {
+  const media = element.matches("img,video,iframe")
+    ? element
+    : element.querySelector<HTMLElement>("img,video,iframe");
+  if (!media) return null;
+
+  const figure = media.closest("figure");
+  const figureCaption = figure?.querySelector("figcaption");
+  const explicitLabel =
+    media.dataset.televizerLabel || figure?.dataset.televizerLabel;
+  const explicitContext =
+    media.dataset.televizerContext || figure?.dataset.televizerContext;
+  const caption = explicitContext || normalizedText(figureCaption) || "";
+
+  if (media instanceof HTMLImageElement) {
+    const src = media.currentSrc || media.src;
+    if (!src) return null;
+    return {
+      kind: "media",
+      mediaType: "image",
+      title: explicitLabel || media.alt || media.title || "Image",
+      caption,
+      src,
+      alt: media.alt,
+      orientation: "single",
+      sourceElements: [media],
+      sourceRect: unionRects([media]),
+    };
+  }
+
+  if (media instanceof HTMLVideoElement) {
+    const src = media.currentSrc || media.src;
+    if (!src) return null;
+    return {
+      kind: "media",
+      mediaType: "video",
+      title: explicitLabel || media.title || "Video",
+      caption,
+      src,
+      poster: media.poster,
+      playback: {
+        currentTime: media.currentTime,
+        paused: media.paused,
+        muted: media.muted,
+        loop: media.loop,
+        playbackRate: media.playbackRate,
+        volume: media.volume,
+      },
+      orientation: "single",
+      sourceElements: [media],
+      sourceRect: unionRects([media]),
+    };
+  }
+
+  if (media instanceof HTMLIFrameElement) {
+    const src = media.src;
+    const srcdoc = media.srcdoc;
+    if (!src && !srcdoc) return null;
+    return {
+      kind: "media",
+      mediaType: "embed",
+      title: explicitLabel || media.title || "Embedded media",
+      caption,
+      src,
+      srcdoc,
+      embed: {
+        allow: media.getAttribute("allow") || "",
+        sandbox: media.getAttribute("sandbox"),
+        referrerPolicy: media.referrerPolicy,
+        allowFullscreen: media.hasAttribute("allowfullscreen"),
+      },
+      orientation: "single",
+      sourceElements: [media],
+      sourceRect: unionRects([media]),
+    };
+  }
+
+  return null;
+}
 
 function nearestHeading(element: HTMLElement): string {
   const labelledBy = element.getAttribute("aria-labelledby");
@@ -98,6 +179,8 @@ export function buildPresentationModel(
   element: HTMLElement,
   scope: TelevizerScope,
 ): PresentationModel {
+  const media = mediaModel(element);
+  if (media) return media;
   return scope === "element"
     ? elementModel(element)
     : collectionModel(element, scope) ?? elementModel(element);

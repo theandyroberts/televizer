@@ -293,6 +293,32 @@ describe("Televizer viewport lifecycle", () => {
     ).toEqual(["--", "−4TB"]);
   });
 
+  it("renders an image in the media zoom panel", () => {
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      `<figure data-televizer-label="Gap comparison" data-televizer-context="A focused table comparison.">
+        <img id="gap-image" src="/gap.png" alt="Gap comparison view" />
+      </figure>`,
+    );
+    televizer = new Televizer({ document }).mount();
+    televizer.focus(document.querySelector<HTMLElement>("#gap-image")!);
+    const shadow = document.querySelector("televizer-overlay")!.shadowRoot!;
+
+    expect(
+      shadow.querySelector<HTMLElement>(".tv-panel")!.dataset.kind,
+    ).toBe("media");
+    expect(
+      shadow.querySelector<HTMLImageElement>("img.tv-media-content")!.src,
+    ).toBe("http://localhost:3000/gap.png");
+    expect(
+      shadow.querySelector<HTMLElement>(".tv-media-caption")!.textContent,
+    ).toBe("A focused table comparison.");
+    expect(
+      (document.querySelector("televizer-overlay") as HTMLElement).style
+        .pointerEvents,
+    ).toBe("none");
+  });
+
   it("compares a row cell-by-cell against each column's best", () => {
     document.body.insertAdjacentHTML(
       "beforeend",

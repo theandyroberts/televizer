@@ -37,6 +37,7 @@ export class PresentationOverlay {
   private readonly toast: HTMLElement;
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
   private connectorFrame: number | null = null;
+  private restoreMediaPlayback: (() => void) | null = null;
 
   constructor(
     private readonly document: Document,
@@ -44,6 +45,7 @@ export class PresentationOverlay {
   ) {
     this.host = document.createElement("televizer-overlay");
     this.host.dataset.televizerIgnore = "";
+    this.host.style.pointerEvents = "none";
     const shadow = this.host.attachShadow({ mode: "open" });
     const style = document.createElement("style");
     style.textContent = overlayStyles;
@@ -83,17 +85,22 @@ export class PresentationOverlay {
 
   destroy(): void {
     if (this.toastTimer) clearTimeout(this.toastTimer);
+    this.finishMediaPlayback();
     this.stopConnectorTracking();
     this.host.remove();
   }
 
   show(model: PresentationModel, state: TelevizerState): void {
     this.mount();
+    this.finishMediaPlayback();
     this.panel.replaceChildren();
     this.panel.dataset.orientation = model.orientation;
     this.panel.dataset.transform = state.transform;
-    this.renderKicker(state);
+    this.panel.dataset.kind = model.kind;
+    this.panel.removeAttribute("aria-label");
+    this.renderKicker(state, model);
     if (model.kind === "element") this.renderElement(model);
+    else if (model.kind === "media") this.renderMedia(model);
     else this.renderCollection(model, state.transform);
 
     this.placeSource(model.sourceRect);
@@ -104,6 +111,7 @@ export class PresentationOverlay {
   }
 
   hide(): void {
+    this.finishMediaPlayback();
     this.stage.dataset.visible = "false";
     this.setHelperVisible(false);
     this.hideIntent();
@@ -221,7 +229,7 @@ export class PresentationOverlay {
     return helper;
   }
 
-  private renderKicker(state: TelevizerState): void {
+  private renderKicker(state: TelevizerState, model: PresentationModel): void {
     const kicker = node(this.document, "div", "tv-kicker");
     kicker.append(node(this.document, "span", "tv-brand", "TELEVIZER"));
     const controls = node(this.document, "div", "tv-kicker-controls");
@@ -231,12 +239,16 @@ export class PresentationOverlay {
       difference: " · gap",
       percent: " · pct",
     };
+    const scopeLabel =
+      model.kind === "media"
+        ? `${model.mediaType} · zoom`
+        : `${state.scope}${transformLabels[state.transform]}`;
     controls.append(
       node(
         this.document,
         "span",
         "tv-scope",
-        `${state.scope}${transformLabels[state.transform]}`,
+        scopeLabel,
       ),
     );
     kicker.append(controls);
@@ -253,6 +265,97 @@ export class PresentationOverlay {
     if (model.context) {
       this.panel.append(node(this.document, "p", "tv-context", model.context));
     }
+  }
+
+  private renderMedia(model: Extract<PresentationModel, { kind: "media" }>): void {
+    this.panel.setAttribute("aria-label", model.title);
+    this.panel.append(node(this.document, "h2", "tv-media-title", model.title));
+    const frame = node(this.document, "div", "tv-media-frame");
+    frame.dataset.mediaType = model.mediaType;
+
+    if (model.mediaType === "image") {
+      const image = node(this.document, "img", "tv-media-content");
+      image.src = model.src;
+      image.alt = model.alt || "";
+      image.decoding = "async";
+      frame.append(image);
+    } else if (model.mediaType === "video") {
+      const video = node(this.document, "video", "tv-media-content");
+      const sourceVideo = model.sourceElements[0];
+      video.src = model.src;
+      video.controls = true;
+      video.playsInline = true;
+      video.preload = "metadata";
+      if (model.poster) video.poster = model.poster;
+      const playback = model.playback;
+      if (playback) {
+        video.muted = playback.muted;
+        video.loop = playback.loop;
+        video.playbackRate = playback.playbackRate;
+        video.volume = playback.volume;
+        if (sourceVideo instanceof HTMLVideoElement && !sourceVideo.paused) {
+          sourceVideo.pause();
+        }
+        let mirroredPlaybackStarted = false;
+        const syncPlayback = (): void => {
+          if (Number.isFinite(playback.currentTime)) {
+            video.currentTime = playback.currentTime;
+          }
+          if (!playback.paused) {
+            void video
+              .play()
+              .then(() => {
+                mirroredPlaybackStarted = true;
+              })
+              .catch(() => undefined);
+          }
+        };
+        if (video.readyState >= 1) syncPlayback();
+        else video.addEventListener("loadedmetadata", syncPlayback, { once: true });
+        if (sourceVideo instanceof HTMLVideoElement) {
+          this.restoreMediaPlayback = () => {
+            if (Number.isFinite(video.currentTime)) {
+              sourceVideo.currentTime = video.currentTime;
+            }
+            sourceVideo.muted = video.muted;
+            sourceVideo.loop = video.loop;
+            sourceVideo.playbackRate = video.playbackRate;
+            sourceVideo.volume = video.volume;
+            const shouldResume =
+              !video.paused || (!playback.paused && !mirroredPlaybackStarted);
+            if (shouldResume) void sourceVideo.play().catch(() => undefined);
+          };
+        }
+      }
+      frame.append(video);
+    } else {
+      const embed = node(this.document, "iframe", "tv-media-content");
+      embed.title = model.title;
+      embed.loading = "eager";
+      if (model.srcdoc) embed.srcdoc = model.srcdoc;
+      else embed.src = model.src;
+      if (model.embed) {
+        embed.allowFullscreen = model.embed.allowFullscreen;
+        if (model.embed.allow) embed.allow = model.embed.allow;
+        if (model.embed.sandbox !== null) {
+          embed.setAttribute("sandbox", model.embed.sandbox);
+        }
+        if (model.embed.referrerPolicy) {
+          embed.referrerPolicy = model.embed.referrerPolicy as ReferrerPolicy;
+        }
+      }
+      frame.append(embed);
+    }
+
+    this.panel.append(frame);
+    if (model.caption) {
+      this.panel.append(node(this.document, "p", "tv-media-caption", model.caption));
+    }
+  }
+
+  private finishMediaPlayback(): void {
+    this.restoreMediaPlayback?.();
+    this.restoreMediaPlayback = null;
   }
 
   private renderCollection(
@@ -358,17 +461,27 @@ export class PresentationOverlay {
     const viewportWidth = view?.innerWidth ?? 1280;
     const viewportHeight = view?.innerHeight ?? 720;
     const margin = 28;
+    const isMedia = model.kind === "media";
     const estimatedWidth =
-      model.orientation === "horizontal"
+      isMedia
+        ? Math.min(960, viewportWidth - margin * 2)
+        : model.orientation === "horizontal"
         ? Math.min(1120, viewportWidth - margin * 2)
         : Math.min(520, viewportWidth - margin * 2);
     const estimatedHeight =
-      model.orientation === "horizontal" ? 260 : Math.min(620, viewportHeight * 0.72);
+      isMedia
+        ? Math.min(760, viewportHeight * 0.86)
+        : model.orientation === "horizontal"
+          ? 260
+          : Math.min(620, viewportHeight * 0.72);
     const source = model.sourceRect;
 
     let left = source.right + 26;
     let top = Math.max(margin, source.top + source.height / 2 - estimatedHeight / 2);
-    if (model.orientation === "horizontal") {
+    if (isMedia) {
+      left = Math.max(margin, (viewportWidth - estimatedWidth) / 2);
+      top = Math.max(margin, (viewportHeight - estimatedHeight) / 2);
+    } else if (model.orientation === "horizontal") {
       left = Math.max(margin, (viewportWidth - estimatedWidth) / 2);
       top = source.bottom + 22;
       if (top + estimatedHeight > viewportHeight - margin) {

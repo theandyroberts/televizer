@@ -15,7 +15,8 @@ and it lifts that content into a television-readable layer without changing the
 source page or rearranging its information.
 
 This repository contains Televizer Core and a Vite playground that exercises
-element, table, comparison, quote, hover-intent, and dismissal behavior.
+element, table, comparison, quote, media zoom, hover-intent, and dismissal
+behavior.
 
 ## Try the demo
 
@@ -60,15 +61,29 @@ surface.
 - A row header presents the full row.
 - A column header presents the full column.
 - Selecting text and pausing over the selection presents it as a quote.
+- Images, native video, and embedded frames open in Televizer's media stage.
 - Moving to a new ordinary target returns to element mode, so row and column
   scope cannot accidentally leak into the next presentation.
 
 For comparisons, Televizer uses the same direction model for ranks and gaps.
 Scores and uptime are normally higher-is-better; latency, cost, and failure
-metrics are normally lower-is-better. The best item displays a zero gap and
+metrics are normally lower-is-better. The best item displays `--` and
 worse items display a negative disadvantage. If direction is unknown—or a
 percentage comparison has a zero baseline—Televizer declines to invent a
 result.
+
+### Media zoom
+
+Images use their current source, alternate text, nearest figure caption, and
+optional `data-televizer-label` or `data-televizer-context` metadata. Native
+video opens with controls at the source player's current time. Televizer hands
+playback to the zoomed player, then returns its time, volume, rate, loop, mute,
+and playing state to the source when the presentation closes.
+
+Iframes are reproduced from their `src` or `srcdoc` without inspecting their
+contents. A generic cross-origin player may therefore restart when zoomed;
+provider-specific adapters are the right path when exact YouTube, Vimeo, or
+other third-party playback continuity is required.
 
 ## Add Televizer to a page
 

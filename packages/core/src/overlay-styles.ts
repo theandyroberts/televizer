@@ -92,6 +92,13 @@ export const overlayStyles = `
   .tv-panel[data-orientation="vertical"] {
     width: min(500px, calc(100vw - 48px));
   }
+  .tv-panel[data-kind="media"] {
+    width: min(960px, calc(100vw - 56px));
+    max-height: calc(100vh - 56px);
+    padding: 18px;
+    pointer-events: none;
+  }
+  .tv-stage[data-visible="true"] .tv-panel[data-kind="media"] { pointer-events: auto; }
   .tv-kicker {
     display: flex;
     align-items: center;
@@ -137,6 +144,47 @@ export const overlayStyles = `
     color: #7dd3fc;
     font-size: clamp(15px, 1.7vw, 22px);
     font-weight: 650;
+  }
+  .tv-media-title {
+    margin: 0 0 14px;
+    color: #f8fbff;
+    font-size: clamp(22px, 3vw, 38px);
+    font-weight: 800;
+    letter-spacing: -.04em;
+    line-height: 1.05;
+  }
+  .tv-media-frame {
+    position: relative;
+    display: grid;
+    width: 100%;
+    height: min(62vh, 580px);
+    overflow: hidden;
+    place-items: center;
+    border: 1px solid rgba(148,163,184,.2);
+    border-radius: 16px;
+    background: #02060d;
+  }
+  .tv-media-content {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    max-width: 100%;
+    max-height: 100%;
+    border: 0;
+    object-fit: contain;
+  }
+  iframe.tv-media-content,
+  video.tv-media-content { object-fit: contain; }
+  .tv-media-caption {
+    margin: 12px 2px 0;
+    color: #93a4bb;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.45;
   }
   .tv-collection-heading {
     display: flex;

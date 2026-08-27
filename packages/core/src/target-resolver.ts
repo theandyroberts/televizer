@@ -10,6 +10,8 @@ const SEMANTIC_SELECTOR = [
   "blockquote",
   "figure",
   "img",
+  "video",
+  "iframe",
   "button",
   "a",
   "h1",
@@ -70,7 +72,7 @@ export class TargetResolver {
 
     const rect = element.getBoundingClientRect();
     const text = normalizedText(element);
-    if (!text && !element.matches("img,svg,canvas,video")) return -1;
+    if (!text && !element.matches("img,svg,canvas,video,iframe")) return -1;
     if (text.length > this.maxTextLength) return -1;
     if (rect.width < 8 || rect.height < 8) return -1;
 

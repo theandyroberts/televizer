@@ -2,6 +2,7 @@ export type TelevizerScope = "element" | "row" | "column";
 export type TelevizerTransform = "values" | "rank" | "difference" | "percent";
 export type RankDirection = "higher" | "lower" | "unknown";
 export type PresentationOrientation = "single" | "horizontal" | "vertical";
+export type PresentationMediaType = "image" | "video" | "embed";
 
 export interface TelevizerState {
   active: boolean;
@@ -42,6 +43,31 @@ export interface ElementPresentation extends PresentationBase {
   context: string;
 }
 
+export interface MediaPresentation extends PresentationBase {
+  kind: "media";
+  mediaType: PresentationMediaType;
+  title: string;
+  caption: string;
+  src: string;
+  srcdoc?: string;
+  alt?: string;
+  poster?: string;
+  playback?: {
+    currentTime: number;
+    paused: boolean;
+    muted: boolean;
+    loop: boolean;
+    playbackRate: number;
+    volume: number;
+  };
+  embed?: {
+    allow: string;
+    sandbox: string | null;
+    referrerPolicy: string;
+    allowFullscreen: boolean;
+  };
+}
+
 export interface CollectionPresentation extends PresentationBase {
   kind: "collection";
   scope: Exclude<TelevizerScope, "element">;
@@ -51,7 +77,10 @@ export interface CollectionPresentation extends PresentationBase {
   rankStrategy: "within-collection" | "per-column";
 }
 
-export type PresentationModel = ElementPresentation | CollectionPresentation;
+export type PresentationModel =
+  | ElementPresentation
+  | MediaPresentation
+  | CollectionPresentation;
 
 export interface TableContext {
   table: HTMLElement;
