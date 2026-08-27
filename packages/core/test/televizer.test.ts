@@ -199,6 +199,55 @@ describe("Televizer viewport lifecycle", () => {
     ).toBe("82.1");
   });
 
+  it("latches row and column presentations until explicit dismissal", () => {
+    vi.useFakeTimers();
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      `<table>
+        <thead><tr><th>Model</th><th id="mmlu-head">MMLU score</th><th id="gpqa-head">GPQA score</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">GPT-5</th><td>89.3</td><td id="gpt-gpqa">82.1</td></tr>
+          <tr><th scope="row">Claude</th><td>87.9</td><td id="claude-gpqa">84.8</td></tr>
+        </tbody>
+      </table>`,
+    );
+    televizer = new Televizer({ document, acquireDelay: 10 }).mount();
+    televizer.focus(document.querySelector<HTMLElement>("#gpqa-head")!);
+    const shadow = document.querySelector("televizer-overlay")!.shadowRoot!;
+
+    vi.advanceTimersByTime(421);
+    for (const selector of ["#gpt-gpqa", "#claude-gpqa", "#mmlu-head"]) {
+      document.querySelector<HTMLElement>(selector)!.dispatchEvent(
+        new MouseEvent("pointermove", { bubbles: true, clientX: 100, clientY: 100 }),
+      );
+      vi.advanceTimersByTime(10);
+    }
+
+    expect(televizer.getState().scope).toBe("column");
+    expect(
+      shadow.querySelector<HTMLElement>(".tv-collection-title")!.textContent,
+    ).toBe("GPQA score");
+    expect(shadow.querySelector<HTMLElement>(".tv-intent")!.dataset.visible).not.toBe(
+      "true",
+    );
+
+    document.body.dispatchEvent(
+      new MouseEvent("pointerdown", { bubbles: true, button: 0 }),
+    );
+    document.body.dispatchEvent(
+      new MouseEvent("pointerup", { bubbles: true, button: 0 }),
+    );
+    document.querySelector<HTMLElement>("#mmlu-head")!.dispatchEvent(
+      new MouseEvent("pointermove", { bubbles: true, clientX: 100, clientY: 100 }),
+    );
+    vi.advanceTimersByTime(10);
+
+    expect(televizer.getState().scope).toBe("column");
+    expect(
+      shadow.querySelector<HTMLElement>(".tv-collection-title")!.textContent,
+    ).toBe("MMLU score");
+  });
+
   it("opens and closes the compact keyboard help with question mark", () => {
     televizer = new Televizer({ document }).mount();
     televizer.start();

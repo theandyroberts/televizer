@@ -63,6 +63,8 @@ surface.
 - An ordinary table value presents only that cell.
 - A row header presents the full row.
 - A column header presents the full column.
+- Row and column presentations stay latched during pointer movement. Dismiss
+  before hovering a different row or column.
 - Headings and paragraphs are inert unless explicitly marked as targets.
 - Selecting text with the pointer starts quote intent only when the selection
   swipe is released; leave the pointer still to present the quote.

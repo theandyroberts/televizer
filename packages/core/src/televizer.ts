@@ -200,6 +200,10 @@ export class Televizer {
     const now = this.document.defaultView?.performance.now() ?? 0;
     if (this.currentTarget && now < this.pointerSuppressedUntil) return;
     this.pointerPosition = { x: event.clientX, y: event.clientY };
+    if (this.currentTarget && this.state.scope !== "element") {
+      this.overlay.hideIntent();
+      return;
+    }
     this.overlay.moveIntent(event.clientX, event.clientY);
     if (this.primaryPointerDown || event.buttons === 1) {
       this.intent.move(null);
