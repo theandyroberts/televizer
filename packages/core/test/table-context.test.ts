@@ -30,6 +30,10 @@ describe("native table context", () => {
       "GPQA score",
     ]);
     expect(context.rowItems.map((entry) => entry.value)).toEqual(["89.3", "82.1"]);
+    expect(context.rowItems.map((entry) => entry.comparisonBaseline)).toEqual([
+      "89.3",
+      "84.8",
+    ]);
     expect(context.columnItems.map((entry) => entry.label)).toEqual([
       "GPT-5",
       "Claude",
@@ -48,6 +52,10 @@ describe("native table context", () => {
     if (row.kind === "collection") {
       expect(row.rankStrategy).toBe("per-column");
       expect(row.items.map((entry) => entry.rank)).toEqual([1, 2]);
+      expect(row.items.map((entry) => entry.comparisonBaseline)).toEqual([
+        "89.3",
+        "84.8",
+      ]);
     }
     expect(column.kind).toBe("collection");
     expect(column.orientation).toBe("vertical");

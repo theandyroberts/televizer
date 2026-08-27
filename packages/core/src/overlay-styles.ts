@@ -260,12 +260,26 @@ export const overlayStyles = `
     min-height: 64px;
     padding: 9px 16px;
   }
+  .tv-item-heading {
+    display: grid;
+    min-width: 0;
+    gap: 4px;
+  }
   .tv-item-label {
     overflow: hidden;
     color: #b7c3d4;
     font-size: clamp(13px, 1.35vw, 18px);
     font-weight: 700;
     text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .tv-item-baseline {
+    color: rgba(253,224,71,.88);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 750;
+    letter-spacing: .01em;
+    line-height: 1;
     white-space: nowrap;
   }
   .tv-item-value {

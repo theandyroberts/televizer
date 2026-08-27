@@ -135,7 +135,10 @@ function compareCellWithinNativeColumn(
   header?: HTMLElement | null,
 ): Pick<
   PresentationItem,
-  "rank" | "differenceFromBest" | "percentDifferenceFromBest"
+  | "rank"
+  | "comparisonBaseline"
+  | "differenceFromBest"
+  | "percentDifferenceFromBest"
 > {
   const candidates = Array.from(table.rows)
     .map((candidateRow) => candidateRow.cells.item(cell.cellIndex))
@@ -151,11 +154,16 @@ function compareCellWithinNativeColumn(
     );
   const direction = rankDirectionForColumn(cell, label, table, header);
   const ranked = rankItems(candidates, direction);
-  const compared = compareItemsToBest(ranked, direction).find(
+  const comparisons = compareItemsToBest(ranked, direction);
+  const compared = comparisons.find(
     (candidate) => candidate.sourceElement === cell,
+  );
+  const best = comparisons.find(
+    (candidate) => candidate.differenceFromBest === 0,
   );
   return {
     rank: compared?.rank,
+    comparisonBaseline: best?.value,
     differenceFromBest: compared?.differenceFromBest,
     percentDifferenceFromBest: compared?.percentDifferenceFromBest,
   };
@@ -211,10 +219,16 @@ function hintedGridContext(cell: HTMLElement): TableContext | null {
       itemFromCell(peer, `Item ${peerIndex + 1}`),
     );
     const direction = rankDirectionForHintedColumn(label, candidate, grid);
-    const compared = compareItemsToBest(rankItems(peers, direction), direction).find(
+    const comparisons = compareItemsToBest(
+      rankItems(peers, direction),
+      direction,
+    );
+    const compared = comparisons.find(
       (peer) => peer.sourceElement === candidate,
     );
+    const best = comparisons.find((peer) => peer.differenceFromBest === 0);
     item.rank = compared?.rank;
+    item.comparisonBaseline = best?.value;
     item.differenceFromBest = compared?.differenceFromBest;
     item.percentDifferenceFromBest = compared?.percentDifferenceFromBest;
     return item;

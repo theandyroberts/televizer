@@ -411,8 +411,24 @@ export class PresentationOverlay {
       ) {
         entry.dataset.difference = difference === 0 ? "best" : "behind";
       }
+      const itemHeading = node(this.document, "div", "tv-item-heading");
+      itemHeading.append(node(this.document, "span", "tv-item-label", item.label));
+      if (
+        transform === "difference" &&
+        model.rankStrategy === "per-column" &&
+        item.comparisonBaseline
+      ) {
+        itemHeading.append(
+          node(
+            this.document,
+            "span",
+            "tv-item-baseline",
+            `vs ${compactPresentationValue(item.comparisonBaseline)}`,
+          ),
+        );
+      }
       entry.append(
-        node(this.document, "span", "tv-item-label", item.label),
+        itemHeading,
         node(
           this.document,
           "strong",
@@ -606,6 +622,12 @@ function compactPresentationValue(value: string): string {
   const parsed = Number(numeric[0].replaceAll(",", "").replace(/[−–—]/g, "-"));
   if (!Number.isFinite(parsed)) return value;
   const { prefix, suffix } = numericParts(value);
+  const compact = compactBytes(Math.abs(parsed), suffix);
+  if (compact.value === Math.abs(parsed) && compact.suffix === suffix) {
+    const sign = parsed < 0 ? "−" : "";
+    const suffixSeparator = suffix && !isTightUnit(suffix) ? " " : "";
+    return `${sign}${prefix}${Math.abs(parsed)}${suffixSeparator}${suffix}`;
+  }
   return formatNumber(parsed, suffix, prefix);
 }
 

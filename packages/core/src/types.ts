@@ -25,6 +25,7 @@ export interface PresentationItem {
   value: string;
   numericValue: number | null;
   rank?: number;
+  comparisonBaseline?: string;
   differenceFromBest?: number;
   percentDifferenceFromBest?: number;
   sourceElement: HTMLElement;

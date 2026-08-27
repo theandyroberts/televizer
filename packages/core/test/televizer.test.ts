@@ -332,9 +332,20 @@ describe("Televizer viewport lifecycle", () => {
     );
     televizer = new Televizer({ document }).mount();
     televizer.focus(document.querySelector<HTMLElement>("#gpt")!);
-    televizer.setTransform("percent");
+    televizer.setTransform("difference");
     const shadow = document.querySelector("televizer-overlay")!.shadowRoot!;
 
+    expect(
+      Array.from(
+        shadow.querySelectorAll(".tv-item-baseline"),
+        (node) => node.textContent,
+      ),
+    ).toEqual(["vs 89.3", "vs 84.8"]);
+    expect(
+      Array.from(shadow.querySelectorAll(".tv-item-value"), (node) => node.textContent),
+    ).toEqual(["--", "−2.7"]);
+
+    televizer.setTransform("percent");
     expect(
       Array.from(shadow.querySelectorAll(".tv-item-value"), (node) => node.textContent),
     ).toEqual(["0%", "−3.2%"]);

@@ -1,46 +1,42 @@
-# Media zoom design QA
+# Row gap baselines design QA
 
-- Source visual truth: `/Users/andyroberts/Projects/televizer/implementation-gap-qa.png`
-- Browser-rendered image state: `/Users/andyroberts/Projects/televizer/media-zoom-image-qa.png`
-- Browser-rendered video state: `/Users/andyroberts/Projects/televizer/media-zoom-video-qa.png`
-- Full image comparison: `/Users/andyroberts/Projects/televizer/design-qa-media-comparison.png`
-- Focused panel comparison: `/Users/andyroberts/Projects/televizer/design-qa-media-panel-comparison.png`
-- Full video comparison: `/Users/andyroberts/Projects/televizer/design-qa-video-comparison.png`
-- Primary viewport: 1280 × 720 CSS pixels; in-app browser captures are 1265 × 712 pixels after browser chrome and scrollbar exclusion
-- Responsive check: 768 × 700 CSS pixels
-- Source pixels: 1014 × 701 at 1×, normalized with Lanczos resampling for the full-view comparisons
-- State: Televizer enabled; image and native-video media presentations settled after hover intent
+- Source visual truth: `/var/folders/nr/325_kfl97h1fqbj3vx67jw0r0000gp/T/TemporaryItems/NSIRD_screencaptureui_90KQnW/Screenshot 2026-08-27 at 2.12.55 PM.png`
+- Browser-rendered implementation: `/Users/andyroberts/Projects/televizer/row-gap-baselines-qa.png`
+- Full-view comparison: `/Users/andyroberts/Projects/televizer/design-qa-row-gap-comparison.png`
+- CSS viewport: 1130 × 576
+- Source pixels: 1113 × 572
+- Implementation pixels: 1115 × 568
+- Normalization: implementation resized to 1113 × 572 with Lanczos resampling for the side-by-side comparison
+- State: Televizer enabled; Claude row acquired; settled `ROW · GAP` presentation
 
-## Comparison evidence
+## Full-view comparison evidence
 
-The source and media states intentionally present different content, so this QA compares the established Televizer visual system rather than literal panel geometry. The media stage preserves the source panel's cyan/navy/slate color roles, radial corner glow, border treatment, 24px outer radius, uppercase kicker, tight display typography, spatial source highlight, page dimming, and cyan connector. The larger 960px stage gives 16:9 media room without changing the existing presentation hierarchy.
+The implementation preserves the source panel's four-card grid, source-order row values, cyan provenance treatment, navy surface, amber best-value cards, typography, radii, and spacing. Each card now adds the requested column-specific baseline directly below its header: `vs 89.3`, `vs 84.8`, `vs 77.2`, and `vs 96.2`. Claude's offsets remain `−1.4`, `--`, `--`, and `−1.5`.
 
-The image state renders a sharp local source asset with `object-fit: contain`, a descriptive heading, and a restrained caption. The native-video state uses the same frame and includes browser controls. Its rendered element is contained exactly inside the frame at both tested viewports, so controls and the final video row are not clipped.
+The full-view comparison is sufficient because the complete component and all new 11px baseline labels are legible at the captured size; a separate focused crop would not expose additional fidelity detail.
 
 ## Required fidelity surfaces
 
-- Fonts and typography: Existing Inter/system typography, compact display tracking, uppercase kicker, and muted caption hierarchy are retained.
-- Spacing and layout rhythm: The kicker, title, media frame, and caption use the same panel rhythm as table and element presentations. No clipping or horizontal overflow is visible.
-- Colors and visual tokens: Televizer cyan, deep navy, slate, and white tokens match the validated presentation source.
-- Image and video quality: The local gap image remains sharp at presentation size. The native video reaches ready state and renders without stretching.
-- Copy and content: `Gap comparison`, `Flower time-lapse`, media-type zoom labels, and both captions match the demo metadata.
+- Fonts and typography: Existing display and UI type styles are unchanged. Baselines use compact tabular numerals, a small bold weight, and the established amber comparison color.
+- Spacing and layout rhythm: Baselines occupy a four-pixel subheading gap without changing card count, panel width, or source order. Values retain their lower visual anchor.
+- Colors and visual tokens: Existing navy, cyan, slate, white, and amber roles are preserved. Baselines reuse amber at reduced emphasis.
+- Image quality and asset fidelity: This state contains no image assets or icons. Browser evidence remains sharp after density normalization.
+- Copy and content: Every header shows the exact best value from its own column, and every large value remains the selected row's offset from that baseline.
 
 ## Comparison history
 
-1. Initial interaction pass: P1 — a hidden media panel retained pointer events and intercepted the next source hover. Fix: media panels now accept pointer input only while the stage is visible. Post-fix hit testing returns the underlying image or video, and image-to-video traversal works.
-2. Responsive pass: P2 — Safari preserved the native video's intrinsic 16:9 box beyond the fixed-height frame, risking clipped controls. Fix: media content is absolutely contained inside the positioned frame with explicit min/max bounds. Final measurements show the video and frame share the same inner bounds at 1280 × 720 and 768 × 700.
-3. Final comparison: no actionable P0, P1, or P2 visual differences remain.
+1. Source state: P1 — row-gap cards showed offsets without exposing the four different comparison baselines, making mixed-column values ambiguous.
+2. First implementation test: P2 — the general compact formatter rounded `89.3` and `84.8` to `89` and `85`. Fix: preserve source precision for ordinary values while retaining compact notation for large byte quantities.
+3. Final implementation: all four exact baselines are visible beneath their corresponding headers; no actionable P0, P1, or P2 differences remain.
 
-## Interaction and console checks
+## Interaction, responsive, and console checks
 
 - Activated Televizer from the demo control.
-- Acquired the image and confirmed image title, caption, source highlight, and contained rendering.
-- Clicked away and confirmed the media stage and source highlight both disappear.
-- Traversed from image to native video and confirmed the hidden panel no longer blocks the next hover.
-- Confirmed native-video controls, ready state, and playback-state handoff behavior in the model and browser.
-- Confirmed 768px-wide presentation bounds remain inside the viewport.
+- Acquired the Claude row through its row header.
+- Pressed minus and confirmed `ROW · GAP`.
+- Confirmed all four exact baselines and offsets in the live shadow DOM.
+- At 768 × 576, the four cards remain inside a 712px panel; list `scrollWidth` equals `clientWidth` at 666px, so no horizontal overflow is introduced.
 - Browser console errors: none; only Vite connection diagnostics were recorded.
-- Generic iframe modeling is covered by unit tests. Exact playback continuity for cross-origin provider embeds remains adapter-dependent and is documented in the README.
 
 ## Findings
 
@@ -48,6 +44,6 @@ No actionable P0, P1, or P2 findings remain.
 
 ## Follow-up polish
 
-Provider-specific YouTube or Vimeo playback adapters can preserve exact cross-origin playback position in a later iteration; the generic iframe zoom intentionally does not claim that guarantee.
+No P3 follow-up is required for this state.
 
 final result: passed
