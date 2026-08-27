@@ -1,49 +1,61 @@
-# Row gap baselines design QA
+# Row Gap Design QA
 
-- Source visual truth: `/var/folders/nr/325_kfl97h1fqbj3vx67jw0r0000gp/T/TemporaryItems/NSIRD_screencaptureui_90KQnW/Screenshot 2026-08-27 at 2.12.55 PM.png`
-- Browser-rendered implementation: `/Users/andyroberts/Projects/televizer/row-gap-baselines-qa.png`
-- Full-view comparison: `/Users/andyroberts/Projects/televizer/design-qa-row-gap-comparison.png`
-- CSS viewport: 1130 × 576
-- Source pixels: 1113 × 572
-- Implementation pixels: 1115 × 568
-- Normalization: implementation resized to 1113 × 572 with Lanczos resampling for the side-by-side comparison
-- State: Televizer enabled; Claude row acquired; settled `ROW · GAP` presentation
+**Source visual truth**
 
-## Full-view comparison evidence
+- Path: `/Users/andyroberts/Desktop/Gap_Row_Complete.png`
+- Pixels: 1040 × 500
+- Target state: Televizer on; GPT-5 row selected; row scope; absolute gap (`-`) transform; transient command toast settled.
 
-The implementation preserves the source panel's four-card grid, source-order row values, cyan provenance treatment, navy surface, amber best-value cards, typography, radii, and spacing. Each card now adds the requested column-specific baseline directly below its header: `vs 89.3`, `vs 84.8`, `vs 77.2`, and `vs 96.2`. Claude's offsets remain `−1.4`, `--`, `--`, and `−1.5`.
+**Rendered implementation**
 
-The full-view comparison is sufficient because the complete component and all new 11px baseline labels are legible at the captured size; a separate focused crop would not expose additional fidelity detail.
+- URL: `http://127.0.0.1:4173/`
+- Screenshot: `/tmp/televizer-row-gap-prototype-1040.jpg`
+- Browser CSS viewport: 1040 × 500 at device pixel ratio 1
+- Screenshot pixels: 1025 × 493. The in-app browser capture omits the 15 px scrollbar strip and a small viewport-edge strip.
+- Focused comparison: `/tmp/televizer-row-gap-comparison.jpg`
+- Normalization: source panel crop 1012 × 281; visible implementation panel crop 1007 × 281 scaled to 1012 × 281 to compensate only for the omitted scrollbar strip.
 
-## Required fidelity surfaces
+**Interaction verification**
 
-- Fonts and typography: Existing display and UI type styles are unchanged. Baselines use compact tabular numerals, a small bold weight, and the established amber comparison color.
-- Spacing and layout rhythm: Baselines occupy a four-pixel subheading gap without changing card count, panel width, or source order. Values retain their lower visual anchor.
-- Colors and visual tokens: Existing navy, cyan, slate, white, and amber roles are preserved. Baselines reuse amber at reduced emphasis.
-- Image quality and asset fidelity: This state contains no image assets or icons. Browser evidence remains sharp after density normalization.
-- Copy and content: Every header shows the exact best value from its own column, and every large value remains the selected row's offset from that baseline.
+- Started Televizer from the demo control.
+- Paused over the GPT-5 row for the acquisition delay.
+- Pressed `-` and confirmed row-gap mode, the source-row highlight, four per-column baselines, signed gaps, and best-value `--` states.
+- Checked browser warnings and errors: none.
 
-## Comparison history
+**Full-view comparison evidence**
 
-1. Source state: P1 — row-gap cards showed offsets without exposing the four different comparison baselines, making mixed-column values ambiguous.
-2. First implementation test: P2 — the general compact formatter rounded `89.3` and `84.8` to `89` and `85`. Fix: preserve source precision for ordinary values while retaining compact notation for large byte quantities.
-3. Final implementation: all four exact baselines are visible beneath their corresponding headers; no actionable P0, P1, or P2 differences remain.
+- The source and implementation use the same desktop theme, table data, row-gap state, panel hierarchy, and four-card structure.
+- The panel's vertical page position differs because placement follows the source row's current viewport position. This is expected behavior, not component drift.
+- The final panel measures 1012 × 281 CSS px, matching the target panel dimensions.
 
-## Interaction, responsive, and console checks
+**Focused-region comparison evidence**
 
-- Activated Televizer from the demo control.
-- Acquired the Claude row through its row header.
-- Pressed minus and confirmed `ROW · GAP`.
-- Confirmed all four exact baselines and offsets in the live shadow DOM.
-- At 768 × 576, the four cards remain inside a 712px panel; list `scrollWidth` equals `clientWidth` at 666px, so no horizontal overflow is introduced.
-- Browser console errors: none; only Vite connection diagnostics were recorded.
+- Each card measures 234 px wide with a 10 px inter-card gap, matching the source.
+- The metric label and yellow `vs <best>` baseline share one header line in all four cards.
+- GPT-5 displays `--`, `−2.7`, `−2.4`, and `--`, with the two best cards receiving the yellow comparison treatment.
+- Typography, padding, radii, borders, gradient, value alignment, and color hierarchy visually match the supplied reference. No image or icon assets appear in this component.
 
-## Findings
+**Findings**
 
-No actionable P0, P1, or P2 findings remain.
+- No actionable P0, P1, or P2 differences remain.
 
-## Follow-up polish
+**Comparison history**
 
-No P3 follow-up is required for this state.
+1. Initial browser measurement at 1040 × 500 found the horizontal panel at 984 px wide, making each card narrower than the 234 px target. The per-card baseline was also a small stacked second line before implementation.
+2. Fixed the header layout, enlarged the yellow baseline, widened the horizontal panel to 1012 px, and aligned its narrow-viewport side position with the reference.
+3. Post-fix browser evidence measures a 1012 × 281 panel and four 234 px cards; the normalized focused comparison shows no remaining P0/P1/P2 mismatch.
+
+**Implementation checklist**
+
+- [x] Show `vs <best>` in every row-gap metric header.
+- [x] Keep the row's signed gap or `--` in the card body.
+- [x] Preserve best-card yellow emphasis.
+- [x] Match the reference panel and card widths at 1040 × 500.
+- [x] Cover a zero-valued comparison baseline.
+- [x] Verify the real hover and keyboard interaction.
+
+**Follow-up polish**
+
+- P3: Font rasterization varies slightly between the supplied screenshot and the browser capture; no token or size change is warranted.
 
 final result: passed

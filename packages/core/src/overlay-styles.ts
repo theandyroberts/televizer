@@ -87,7 +87,7 @@ export const overlayStyles = `
   }
   .tv-stage[data-visible="true"] .tv-panel { opacity: 1; transform: none; }
   .tv-panel[data-orientation="horizontal"] {
-    width: min(1120px, calc(100vw - 56px));
+    width: min(1120px, calc(100vw - 28px));
   }
   .tv-panel[data-orientation="vertical"] {
     width: min(500px, calc(100vw - 48px));
@@ -281,6 +281,19 @@ export const overlayStyles = `
     letter-spacing: .01em;
     line-height: 1;
     white-space: nowrap;
+  }
+  .tv-panel[data-transform="difference"] .tv-items[data-orientation="horizontal"] .tv-item-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .tv-panel[data-transform="difference"] .tv-items[data-orientation="horizontal"] .tv-item-baseline {
+    flex: 0 0 auto;
+    color: #fde047;
+    font-size: clamp(16px, 2vw, 24px);
+    font-weight: 820;
+    letter-spacing: -.035em;
   }
   .tv-item-value {
     color: #f8fbff;

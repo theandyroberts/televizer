@@ -400,6 +400,27 @@ describe("Televizer viewport lifecycle", () => {
     ).toEqual(["0%", "−3.2%"]);
   });
 
+  it("shows a zero row comparison baseline", () => {
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      `<table data-televizer-rank="higher">
+        <thead><tr><th>Model</th><th>Change</th></tr></thead>
+        <tbody>
+          <tr><th id="flat" scope="row">Flat</th><td>0</td></tr>
+          <tr><th scope="row">Down</th><td>−1.2</td></tr>
+        </tbody>
+      </table>`,
+    );
+    televizer = new Televizer({ document }).mount();
+    televizer.focus(document.querySelector<HTMLElement>("#flat")!);
+    televizer.setTransform("difference");
+    const shadow = document.querySelector("televizer-overlay")!.shadowRoot!;
+
+    expect(
+      shadow.querySelector<HTMLElement>(".tv-item-baseline")!.textContent,
+    ).toBe("vs 0");
+  });
+
   it("starts quote intent only after selection drag release", () => {
     vi.useFakeTimers();
     document.body.insertAdjacentHTML(

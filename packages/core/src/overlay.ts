@@ -416,7 +416,7 @@ export class PresentationOverlay {
       if (
         transform === "difference" &&
         model.rankStrategy === "per-column" &&
-        item.comparisonBaseline
+        item.comparisonBaseline !== undefined
       ) {
         itemHeading.append(
           node(
@@ -478,11 +478,13 @@ export class PresentationOverlay {
     const viewportHeight = view?.innerHeight ?? 720;
     const margin = 28;
     const isMedia = model.kind === "media";
+    const sideMargin =
+      !isMedia && model.orientation === "horizontal" ? 18 : margin;
     const estimatedWidth =
       isMedia
         ? Math.min(960, viewportWidth - margin * 2)
         : model.orientation === "horizontal"
-        ? Math.min(1120, viewportWidth - margin * 2)
+        ? Math.min(1120, viewportWidth - 28)
         : Math.min(520, viewportWidth - margin * 2);
     const estimatedHeight =
       isMedia
@@ -498,7 +500,7 @@ export class PresentationOverlay {
       left = Math.max(margin, (viewportWidth - estimatedWidth) / 2);
       top = Math.max(margin, (viewportHeight - estimatedHeight) / 2);
     } else if (model.orientation === "horizontal") {
-      left = Math.max(margin, (viewportWidth - estimatedWidth) / 2);
+      left = Math.max(sideMargin, (viewportWidth - estimatedWidth) / 2);
       top = source.bottom + 22;
       if (top + estimatedHeight > viewportHeight - margin) {
         top = Math.max(margin, source.top - estimatedHeight - 22);
@@ -506,7 +508,9 @@ export class PresentationOverlay {
     } else if (left + estimatedWidth > viewportWidth - margin) {
       left = source.left - estimatedWidth - 26;
     }
-    if (left < margin) left = Math.max(margin, (viewportWidth - estimatedWidth) / 2);
+    if (left < sideMargin) {
+      left = Math.max(sideMargin, (viewportWidth - estimatedWidth) / 2);
+    }
     if (top + estimatedHeight > viewportHeight - margin) {
       top = Math.max(margin, viewportHeight - estimatedHeight - margin);
     }
