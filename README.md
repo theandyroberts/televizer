@@ -20,7 +20,10 @@ behavior.
 
 ## Try the demo
 
-Requires Node.js 22 or newer.
+[Try Televizer in the browser](https://theandyroberts.github.io/televizer/),
+then press `Option/Alt + T` to turn it on.
+
+To run the demo locally, use Node.js 22 or newer:
 
 ```bash
 npm install
