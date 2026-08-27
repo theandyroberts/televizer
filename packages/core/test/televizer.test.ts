@@ -250,6 +250,20 @@ describe("Televizer viewport lifecycle", () => {
     expect(
       Array.from(shadow.querySelectorAll(".tv-item-value"), (node) => node.textContent),
     ).toEqual(["−111%", "0%"]);
+
+    televizer.setTransform("values");
+    document.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        bubbles: true,
+        code: "Digit5",
+        key: "%",
+        shiftKey: true,
+      }),
+    );
+    expect(televizer.getState().transform).toBe("percent");
+    expect(
+      Array.from(shadow.querySelectorAll(".tv-item-value"), (node) => node.textContent),
+    ).toEqual(["−111%", "0%"]);
   });
 
   it("compares a row cell-by-cell against each column's best", () => {
