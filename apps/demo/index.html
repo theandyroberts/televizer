@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Televizer Core interaction and table-intelligence demo"
+    />
+    <title>Televizer Core — Demo</title>
+  </head>
+  <body>
+    <header class="topbar" data-televizer-ignore>
+      <a class="brand" href="#top" aria-label="Televizer home">
+        <span class="brand-mark" aria-hidden="true">T</span>
+        <span>
+          <strong>TELEVIZER</strong>
+          <small>makes the web presentable</small>
+        </span>
+      </a>
+      <div class="top-actions">
+        <span class="mode-state" id="mode-state"><i></i>Off</span>
+        <button class="activate" id="activate" type="button">
+          Start Televizer
+          <kbd>⌥ T</kbd>
+        </button>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero" data-televizer-ignore>
+        <div>
+          <p class="eyebrow">CORE 0.1 · INTERACTION PROTOTYPE</p>
+          <h1>Point at the web.<br /><em>Make the meaning visible.</em></h1>
+          <p class="hero-copy">
+            This playground proves the first Televizer interaction: calm hover
+            intent, spatial provenance, semantic presentation, and four commands.
+          </p>
+        </div>
+        <aside class="command-card">
+          <div class="command" data-televizer-target data-televizer-label="Element mode" data-televizer-value="E" data-televizer-context="Lift one thing"><kbd>E</kbd><span><b>Element</b>Lift one thing</span></div>
+          <div class="command" data-televizer-target data-televizer-label="Row mode" data-televizer-value="R" data-televizer-context="Keep it horizontal"><kbd>R</kbd><span><b>Row</b>Keep it horizontal</span></div>
+          <div class="command" data-televizer-target data-televizer-label="Column mode" data-televizer-value="C" data-televizer-context="Keep it vertical"><kbd>C</kbd><span><b>Column</b>Keep it vertical</span></div>
+          <div class="command" data-televizer-target data-televizer-label="Ordinal mode" data-televizer-value="1" data-televizer-context="Show who wins"><kbd>1</kbd><span><b>Ordinal</b>Show who wins</span></div>
+        </aside>
+      </section>
+
+      <section class="section" aria-labelledby="metrics-title">
+        <div class="section-heading" data-televizer-ignore>
+          <div>
+            <p class="eyebrow">ELEMENT MODE</p>
+            <h2 id="metrics-title">A television layer for ordinary metrics</h2>
+          </div>
+          <p>Activate Televizer, then pause over a card.</p>
+        </div>
+        <div class="metric-grid">
+          <article
+            class="metric-card cyan"
+            data-televizer-target
+            data-televizer-type="metric"
+            data-televizer-label="Average TTFB"
+            data-televizer-value="286 ms"
+            data-televizer-context="Latest check per image"
+          >
+            <span class="metric-icon">↯</span>
+            <p>Average TTFB</p>
+            <strong>286 ms</strong>
+            <small>Latest check per image</small>
+          </article>
+          <article
+            class="metric-card green"
+            data-televizer-target
+            data-televizer-type="metric"
+            data-televizer-label="Healthy now"
+            data-televizer-value="99.4%"
+            data-televizer-context="54 of 55 serving normally"
+          >
+            <span class="metric-icon">✓</span>
+            <p>Healthy now</p>
+            <strong>99.4%</strong>
+            <small>54 of 55 serving normally</small>
+          </article>
+          <article
+            class="metric-card violet"
+            data-televizer-target
+            data-televizer-type="metric"
+            data-televizer-label="Complete load"
+            data-televizer-value="681 ms"
+            data-televizer-context="Full image response"
+          >
+            <span class="metric-icon">◷</span>
+            <p>Complete load</p>
+            <strong>681 ms</strong>
+            <small>Full image response</small>
+          </article>
+          <article
+            class="metric-card amber"
+            data-televizer-target
+            data-televizer-type="metric"
+            data-televizer-label="Active failures"
+            data-televizer-value="1"
+            data-televizer-context="One asset needs attention"
+          >
+            <span class="metric-icon">!</span>
+            <p>Active failures</p>
+            <strong>1</strong>
+            <small>One asset needs attention</small>
+          </article>
+        </div>
+      </section>
+
+      <section class="section table-section" aria-labelledby="benchmark-title">
+        <div class="section-heading" data-televizer-ignore>
+          <div>
+            <p class="eyebrow">TABLE MODES</p>
+            <h2 id="benchmark-title">Benchmark comparison</h2>
+          </div>
+          <p>Hover a value. Try <kbd>R</kbd>, <kbd>C</kbd>, then <kbd>1</kbd>.</p>
+        </div>
+        <div class="table-shell">
+          <table data-televizer-rank="higher">
+            <caption>Selected model capability scores</caption>
+            <thead>
+              <tr>
+                <th scope="col">Model</th>
+                <th scope="col">MMLU score</th>
+                <th scope="col">GPQA score</th>
+                <th scope="col">SWE-bench score</th>
+                <th scope="col">Math score</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">GPT-5</th>
+                <td>89.3</td><td>82.1</td><td>74.8</td><td>96.2</td>
+              </tr>
+              <tr>
+                <th scope="row">Claude</th>
+                <td>87.9</td><td>84.8</td><td>77.2</td><td>94.7</td>
+              </tr>
+              <tr>
+                <th scope="row">Gemini</th>
+                <td>88.1</td><td>81.7</td><td>75.6</td><td>95.4</td>
+              </tr>
+              <tr>
+                <th scope="row">Llama</th>
+                <td>82.4</td><td>73.2</td><td>62.1</td><td>88.9</td>
+              </tr>
+              <tr>
+                <th scope="row">Mistral</th>
+                <td>80.7</td><td>70.6</td><td>58.9</td><td>86.3</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section table-section" aria-labelledby="latency-title">
+        <div class="section-heading" data-televizer-ignore>
+          <div>
+            <p class="eyebrow">DIRECTION-AWARE ORDINALS</p>
+            <h2 id="latency-title">Response latency</h2>
+          </div>
+          <p>Here, lower is better. Source order still never changes.</p>
+        </div>
+        <div class="table-shell compact">
+          <table data-televizer-rank="lower">
+            <caption>CDN latency by region</caption>
+            <thead>
+              <tr>
+                <th scope="col">CDN</th>
+                <th scope="col">Virginia TTFB</th>
+                <th scope="col">Oregon TTFB</th>
+                <th scope="col">Frankfurt TTFB</th>
+                <th scope="col">Sydney TTFB</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><th scope="row">Adobe</th><td>38 ms</td><td>74 ms</td><td>112 ms</td><td>184 ms</td></tr>
+              <tr><th scope="row">Stripo</th><td>67 ms</td><td>48 ms</td><td>91 ms</td><td>152 ms</td></tr>
+              <tr><th scope="row">Cloudflare</th><td>18 ms</td><td>26 ms</td><td>34 ms</td><td>61 ms</td></tr>
+              <tr><th scope="row">Fastly</th><td>29 ms</td><td>31 ms</td><td>46 ms</td><td>72 ms</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="principle" data-televizer-ignore>
+        <p class="eyebrow">THE INVARIANT</p>
+        <blockquote>Televizer transforms emphasis, not topology.</blockquote>
+        <p>Rank can change what the audience sees. It never changes where an item belongs.</p>
+      </section>
+    </main>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
