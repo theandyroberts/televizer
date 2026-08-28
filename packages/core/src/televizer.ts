@@ -376,8 +376,9 @@ export class Televizer {
     this.intent.move(null);
   };
 
-  private readonly onViewportChange = (): void => {
+  private readonly onViewportChange = (event: Event): void => {
     if (!this.state.active) return;
+    if (this.overlay.ownsEvent(event)) return;
     this.dismissPresentation();
   };
 

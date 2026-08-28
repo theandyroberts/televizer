@@ -73,6 +73,8 @@ surface.
   across the columns—rank the comparable values across the presented row.
 - Row and column presentations stay latched while the pointer moves across
   their cells or the lifted panel.
+- Overflowing row and column presentations own their scrollbars and wheel or
+  trackpad scrolling. Scrolling the underlying page still dismisses them.
 - Hovering a different row or column header traverses directly to that peer.
   Dismiss first only when the peer source is hidden beneath the lifted panel.
 - Headings and paragraphs are inert unless explicitly marked as targets.

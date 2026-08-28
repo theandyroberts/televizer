@@ -103,6 +103,39 @@ describe("Televizer viewport lifecycle", () => {
     expect(televizer.getState().scope).toBe("element");
   });
 
+  it("keeps a collection open while its own viewport is used", () => {
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      `<table>
+        <thead><tr><th>Model</th><th id="score-head">Score</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">One</th><td>91</td></tr>
+          <tr><th scope="row">Two</th><td>82</td></tr>
+        </tbody>
+      </table>`,
+    );
+    televizer = new Televizer({ document }).mount();
+    televizer.focus(document.querySelector<HTMLElement>("#score-head")!);
+    const shadow = document.querySelector("televizer-overlay")!.shadowRoot!;
+    const stage = shadow.querySelector<HTMLElement>(".tv-stage")!;
+    const items = shadow.querySelector<HTMLElement>(".tv-items")!;
+
+    items.dispatchEvent(
+      new MouseEvent("pointerdown", {
+        bubbles: true,
+        composed: true,
+        button: 0,
+      }),
+    );
+    expect(stage.dataset.visible).toBe("true");
+
+    items.dispatchEvent(
+      new Event("scroll", { bubbles: true, composed: true }),
+    );
+    expect(stage.dataset.visible).toBe("true");
+    expect(televizer.getState().scope).toBe("column");
+  });
+
   it("dismisses the presentation on a primary page click", () => {
     televizer = new Televizer({ document }).mount();
     televizer.focus(document.querySelector<HTMLElement>("#metric")!);

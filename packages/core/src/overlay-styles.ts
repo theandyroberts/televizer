@@ -86,6 +86,9 @@ export const overlayStyles = `
     transition: left 260ms cubic-bezier(.2,.8,.2,1), top 260ms cubic-bezier(.2,.8,.2,1), opacity 160ms ease, transform 260ms cubic-bezier(.2,.8,.2,1);
   }
   .tv-stage[data-visible="true"] .tv-panel { opacity: 1; transform: none; }
+  .tv-stage[data-visible="true"] .tv-panel[data-kind="collection"] {
+    pointer-events: auto;
+  }
   .tv-panel[data-orientation="horizontal"] {
     width: min(1120px, calc(100vw - 28px));
   }
@@ -230,12 +233,14 @@ export const overlayStyles = `
     grid-auto-columns: minmax(112px, 1fr);
     gap: 10px;
     overflow-x: auto;
+    overscroll-behavior: contain;
     padding-bottom: 4px;
   }
   .tv-items[data-orientation="vertical"] {
     display: grid;
     gap: 6px;
     overflow-y: auto;
+    overscroll-behavior: contain;
     max-height: min(56vh, 560px);
   }
   .tv-item {
