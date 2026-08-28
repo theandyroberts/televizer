@@ -5,7 +5,9 @@ import {
   rankItems,
 } from "./rank";
 import { normalizedText } from "./rect";
-import type { PresentationItem, TableContext } from "./types";
+import type { PresentationItem, RankDirection, TableContext } from "./types";
+
+type KnownRankDirection = Exclude<RankDirection, "unknown">;
 
 const CELL_SELECTOR =
   "th,td,[role='gridcell'],[role='columnheader'],[role='rowheader'],[data-televizer-cell]";
@@ -20,7 +22,10 @@ function explicitRankDirection(element: HTMLElement): string | null {
     .televizerRank ?? null;
 }
 
-function nativeTableContext(cell: HTMLTableCellElement): TableContext | null {
+function nativeTableContext(
+  cell: HTMLTableCellElement,
+  directionOverride?: KnownRankDirection,
+): TableContext | null {
   const table = cell.closest("table");
   const row = cell.closest("tr");
   if (!table || !row) return null;
@@ -71,6 +76,7 @@ function nativeTableContext(cell: HTMLTableCellElement): TableContext | null {
           table,
           item.label,
           asHtml(columnHeader),
+          directionOverride,
         ));
       }
       return item;
@@ -103,14 +109,29 @@ function nativeTableContext(cell: HTMLTableCellElement): TableContext | null {
     columnTitle,
     rowItems,
     columnItems,
-    rowRankDirection: inferRankDirection(rowRankLabel, explicitRankDirection(row)),
+    rowRankDirection: resolvedRankDirection(
+      rowRankLabel,
+      explicitRankDirection(row),
+      directionOverride,
+    ),
     columnRankDirection: rankDirectionForColumn(
       cell,
       columnTitle,
       table,
       headerCell,
+      directionOverride,
     ),
   };
+}
+
+function resolvedRankDirection(
+  label: string,
+  explicit?: string | null,
+  directionOverride?: KnownRankDirection,
+): KnownRankDirection {
+  if (directionOverride) return directionOverride;
+  const inferred = inferRankDirection(label, explicit);
+  return inferred === "unknown" ? "higher" : inferred;
 }
 
 function rankDirectionForColumn(
@@ -118,13 +139,15 @@ function rankDirectionForColumn(
   label: string,
   table: HTMLElement,
   header?: HTMLElement | null,
-) {
+  directionOverride?: KnownRankDirection,
+): KnownRankDirection {
+  if (directionOverride) return directionOverride;
   const localDirection =
     cell.dataset.televizerRank ?? header?.dataset.televizerRank;
-  if (localDirection) return inferRankDirection(label, localDirection);
+  if (localDirection) return resolvedRankDirection(label, localDirection);
   const inferred = inferRankDirection(label);
   return inferred === "unknown"
-    ? inferRankDirection(label, table.dataset.televizerRank)
+    ? resolvedRankDirection(label, table.dataset.televizerRank)
     : inferred;
 }
 
@@ -133,6 +156,7 @@ function compareCellWithinNativeColumn(
   table: HTMLTableElement,
   label: string,
   header?: HTMLElement | null,
+  directionOverride?: KnownRankDirection,
 ): Pick<
   PresentationItem,
   | "rank"
@@ -152,7 +176,13 @@ function compareCellWithinNativeColumn(
         candidate.closest("tr")?.dataset.televizerLabel || `Row ${index + 1}`,
       ),
     );
-  const direction = rankDirectionForColumn(cell, label, table, header);
+  const direction = rankDirectionForColumn(
+    cell,
+    label,
+    table,
+    header,
+    directionOverride,
+  );
   const ranked = rankItems(candidates, direction);
   const comparisons = compareItemsToBest(ranked, direction);
   const compared = comparisons.find(
@@ -183,14 +213,19 @@ function rankDirectionForHintedColumn(
   label: string,
   cell: HTMLElement,
   grid: HTMLElement,
-) {
+  directionOverride?: KnownRankDirection,
+): KnownRankDirection {
+  if (directionOverride) return directionOverride;
   const inferred = inferRankDirection(label, cell.dataset.televizerRank);
   return inferred === "unknown"
-    ? inferRankDirection(label, grid.dataset.televizerRank)
+    ? resolvedRankDirection(label, grid.dataset.televizerRank)
     : inferred;
 }
 
-function hintedGridContext(cell: HTMLElement): TableContext | null {
+function hintedGridContext(
+  cell: HTMLElement,
+  directionOverride?: KnownRankDirection,
+): TableContext | null {
   const grid = cell.closest<HTMLElement>(TABLE_SELECTOR);
   if (!grid) return null;
   const row = cell.closest<HTMLElement>("[data-televizer-row],[role='row']");
@@ -218,7 +253,12 @@ function hintedGridContext(cell: HTMLElement): TableContext | null {
     ).map((peer, peerIndex) =>
       itemFromCell(peer, `Item ${peerIndex + 1}`),
     );
-    const direction = rankDirectionForHintedColumn(label, candidate, grid);
+    const direction = rankDirectionForHintedColumn(
+      label,
+      candidate,
+      grid,
+      directionOverride,
+    );
     const comparisons = compareItemsToBest(
       rankItems(peers, direction),
       direction,
@@ -249,23 +289,30 @@ function hintedGridContext(cell: HTMLElement): TableContext | null {
           .televizerLabel || `Item ${index + 1}`,
       ),
     ),
-    rowRankDirection: inferRankDirection(
+    rowRankDirection: resolvedRankDirection(
       rowTitle,
       explicitRankDirection(row) ?? explicitRankDirection(grid),
+      directionOverride,
     ),
     columnRankDirection: rankDirectionForHintedColumn(
       columnTitle,
       cell,
       grid,
+      directionOverride,
     ),
   };
 }
 
-export function resolveTableContext(target: HTMLElement): TableContext | null {
+export function resolveTableContext(
+  target: HTMLElement,
+  directionOverride?: KnownRankDirection,
+): TableContext | null {
   const cell = target.closest<HTMLElement>(CELL_SELECTOR);
   if (!cell) return null;
-  if (cell instanceof HTMLTableCellElement) return nativeTableContext(cell);
-  return hintedGridContext(cell);
+  if (cell instanceof HTMLTableCellElement) {
+    return nativeTableContext(cell, directionOverride);
+  }
+  return hintedGridContext(cell, directionOverride);
 }
 
 export function inferScopeFromTableTarget(

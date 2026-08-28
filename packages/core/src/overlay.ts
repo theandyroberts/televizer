@@ -200,6 +200,7 @@ export class PresentationOverlay {
       ["1", "Ordinal ranks"],
       ["5", "Percent from best"],
       ["−", "Value from best"],
+      ["L", "Lower is better"],
       ["H", "On-air hints"],
       ["?", "Help"],
     ];
@@ -225,7 +226,7 @@ export class PresentationOverlay {
   private createHelper(): HTMLElement {
     const helper = node(this.document, "aside", "tv-helper");
     helper.setAttribute("role", "note");
-    helper.textContent = "H hide  ·  E element  ·  R row  ·  C column  ·  1 ranks  ·  5 pct  ·  − gap";
+    helper.textContent = "H hide  ·  E element  ·  R row  ·  C column  ·  1 ranks  ·  L low wins  ·  5 pct  ·  − gap";
     return helper;
   }
 
@@ -457,6 +458,17 @@ export class PresentationOverlay {
             : model.rankStrategy === "per-column"
               ? "Direction is unclear for one or more columns."
               : "Direction is unclear. Add data-televizer-rank=\"higher\" or \"lower\".",
+        ),
+      );
+    } else if (transform !== "values") {
+      this.panel.append(
+        node(
+          this.document,
+          "div",
+          "tv-rank-note",
+          model.rankDirection === "lower"
+            ? "Lower is better"
+            : "Higher is better",
         ),
       );
     }

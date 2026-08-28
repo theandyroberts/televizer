@@ -17,6 +17,7 @@ export type {
   PresentationModel,
   RankDirection,
   TableContext,
+  TelevizerComparisonDirection,
   TelevizerOptions,
   TelevizerScope,
   TelevizerState,

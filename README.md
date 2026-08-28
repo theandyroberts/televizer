@@ -54,6 +54,7 @@ Televizer off.
 | `1` | Toggle ordinal ranks without reordering the source |
 | `5` or `%` | Toggle percentage disadvantage from the best value |
 | `-` | Toggle absolute disadvantage from the best value |
+| `L` or `l` | Toggle lower-is-better for the current row or column |
 | `H` | Toggle a tiny on-air command footnote below the presentation |
 | `?` | Open or close the compact help panel |
 
@@ -78,12 +79,13 @@ surface.
 - Moving to a new ordinary target returns to element mode, so row and column
   scope cannot accidentally leak into the next presentation.
 
-For comparisons, Televizer uses the same direction model for ranks and gaps.
-Scores and uptime are normally higher-is-better; latency, cost, and failure
-metrics are normally lower-is-better. The best item displays `--` and
-worse items display a negative disadvantage. If direction is unknown—or a
-percentage comparison has a zero baseline—Televizer declines to invent a
-result.
+For comparisons, Televizer uses the same direction for ranks and gaps and
+starts with higher-is-better. Press `L` while a row or column is Televized to
+switch it to lower-is-better; press `L` again to return to higher-is-better.
+Ordinal, gap, and percent views state only the active direction in the small
+note below their values; key instructions remain in the existing help
+surfaces. The best item displays `--` and worse items display a negative
+disadvantage. A percentage comparison with a zero baseline remains undefined.
 
 ### Media zoom
 

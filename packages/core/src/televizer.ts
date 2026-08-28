@@ -49,6 +49,7 @@ export class Televizer {
     active: false,
     scope: "element",
     transform: "values",
+    comparisonDirection: "higher",
   };
 
   constructor(options: TelevizerOptions = {}) {
@@ -126,7 +127,12 @@ export class Televizer {
 
   stop(): void {
     if (!this.state.active) return;
-    this.state = { active: false, scope: "element", transform: "values" };
+    this.state = {
+      active: false,
+      scope: "element",
+      transform: "values",
+      comparisonDirection: "higher",
+    };
     delete this.document.documentElement.dataset.televizerActive;
     this.currentTarget = null;
     this.helperVisible = false;
@@ -144,7 +150,13 @@ export class Televizer {
 
   setScope(scope: TelevizerScope): void {
     if (!this.state.active) return;
-    this.state = { ...this.state, scope, transform: "values" };
+    this.state = {
+      ...this.state,
+      scope,
+      transform: "values",
+      comparisonDirection:
+        scope === "element" ? "higher" : this.state.comparisonDirection,
+    };
     this.overlay.flash(scope.toUpperCase());
     this.refreshPresentation();
     this.emitState();
@@ -152,6 +164,24 @@ export class Televizer {
 
   toggleRank(): void {
     this.setTransform(this.state.transform === "rank" ? "values" : "rank");
+  }
+
+  toggleComparisonDirection(): void {
+    if (!this.state.active) return;
+    if (!this.currentTarget || this.state.scope === "element") {
+      this.overlay.flash("CHOOSE ROW OR COLUMN");
+      return;
+    }
+    const comparisonDirection =
+      this.state.comparisonDirection === "lower" ? "higher" : "lower";
+    this.state = { ...this.state, comparisonDirection };
+    this.overlay.flash(
+      comparisonDirection === "lower"
+        ? "LOWER IS BETTER"
+        : "HIGHER IS BETTER",
+    );
+    this.refreshPresentation();
+    this.emitState();
   }
 
   setTransform(transform: TelevizerTransform): void {
@@ -373,6 +403,7 @@ export class Televizer {
       key === "5" ||
       key === "%" ||
       key === "-" ||
+      key === "l" ||
       key === "h" ||
       key === "?"
     ) {
@@ -389,6 +420,8 @@ export class Televizer {
       this.setTransform(
         this.state.transform === "difference" ? "values" : "difference",
       );
+    } else if (key === "l") {
+      this.toggleComparisonDirection();
     } else if (key === "h") {
       if (!this.currentTarget) return;
       this.helperVisible = !this.helperVisible;
@@ -413,7 +446,15 @@ export class Televizer {
       ? "element"
       : inferScopeFromTableTarget(target) ?? "element";
     if (inferredScope !== this.state.scope) {
-      this.state = { ...this.state, scope: inferredScope, transform: "values" };
+      this.state = {
+        ...this.state,
+        scope: inferredScope,
+        transform: "values",
+        comparisonDirection:
+          inferredScope === "element"
+            ? "higher"
+            : this.state.comparisonDirection,
+      };
       this.overlay.flash(inferredScope.toUpperCase());
       this.emitState();
     }
@@ -429,8 +470,17 @@ export class Televizer {
     this.helperVisible = false;
     this.intent.reset();
     this.overlay.hide();
-    if (this.state.scope !== "element" || this.state.transform !== "values") {
-      this.state = { ...this.state, scope: "element", transform: "values" };
+    if (
+      this.state.scope !== "element" ||
+      this.state.transform !== "values" ||
+      this.state.comparisonDirection !== "higher"
+    ) {
+      this.state = {
+        ...this.state,
+        scope: "element",
+        transform: "values",
+        comparisonDirection: "higher",
+      };
       this.emitState();
     }
   }
@@ -439,7 +489,11 @@ export class Televizer {
     if (!this.currentTarget) return;
     const model = isSelectionTarget(this.currentTarget)
       ? this.buildSelectionModel(this.currentTarget)
-      : buildPresentationModel(this.currentTarget, this.state.scope);
+      : buildPresentationModel(
+          this.currentTarget,
+          this.state.scope,
+          this.state.comparisonDirection,
+        );
     if (model.kind === "element" && this.state.scope !== "element") {
       this.overlay.flash(`${this.state.scope.toUpperCase()} NOT FOUND`);
     }

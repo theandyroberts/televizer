@@ -6,6 +6,7 @@ import type {
   ElementPresentation,
   MediaPresentation,
   PresentationModel,
+  RankDirection,
   TelevizerScope,
 } from "./types";
 
@@ -157,8 +158,9 @@ function elementModel(element: HTMLElement): ElementPresentation {
 function collectionModel(
   element: HTMLElement,
   scope: Exclude<TelevizerScope, "element">,
+  directionOverride?: Exclude<RankDirection, "unknown">,
 ): CollectionPresentation | null {
-  const context = resolveTableContext(element);
+  const context = resolveTableContext(element, directionOverride);
   if (!context) return null;
   const row = scope === "row";
   const sourceElements = row ? context.rowElements : context.columnElements;
@@ -178,10 +180,11 @@ function collectionModel(
 export function buildPresentationModel(
   element: HTMLElement,
   scope: TelevizerScope,
+  directionOverride?: Exclude<RankDirection, "unknown">,
 ): PresentationModel {
   const media = mediaModel(element);
   if (media) return media;
   return scope === "element"
     ? elementModel(element)
-    : collectionModel(element, scope) ?? elementModel(element);
+    : collectionModel(element, scope, directionOverride) ?? elementModel(element);
 }

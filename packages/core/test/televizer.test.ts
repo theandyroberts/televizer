@@ -293,6 +293,49 @@ describe("Televizer viewport lifecycle", () => {
     expect(help.dataset.visible).toBe("false");
   });
 
+  it("defaults unclear comparisons to higher and toggles lower with L or l", () => {
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      `<table>
+        <thead><tr><th>Task</th><th>System A</th><th>System B</th></tr></thead>
+        <tbody>
+          <tr><th id="current" scope="row">Current</th><td>73.9</td><td>70.7</td></tr>
+          <tr><th scope="row">Peer</th><td>80.2</td><td>60.1</td></tr>
+        </tbody>
+      </table>`,
+    );
+    televizer = new Televizer({ document }).mount();
+    televizer.focus(document.querySelector<HTMLElement>("#current")!);
+    televizer.setTransform("rank");
+    const shadow = document.querySelector("televizer-overlay")!.shadowRoot!;
+
+    expect(
+      Array.from(shadow.querySelectorAll(".tv-item-value"), (node) => node.textContent),
+    ).toEqual(["2", "1"]);
+    expect(shadow.querySelector<HTMLElement>(".tv-rank-note")!.textContent).toBe(
+      "Higher is better",
+    );
+
+    document.dispatchEvent(
+      new KeyboardEvent("keydown", { bubbles: true, key: "L", code: "KeyL" }),
+    );
+    expect(televizer.getState().comparisonDirection).toBe("lower");
+    expect(
+      Array.from(shadow.querySelectorAll(".tv-item-value"), (node) => node.textContent),
+    ).toEqual(["1", "2"]);
+    expect(shadow.querySelector<HTMLElement>(".tv-rank-note")!.textContent).toBe(
+      "Lower is better",
+    );
+
+    document.dispatchEvent(
+      new KeyboardEvent("keydown", { bubbles: true, key: "l", code: "KeyL" }),
+    );
+    expect(televizer.getState().comparisonDirection).toBe("higher");
+    expect(
+      Array.from(shadow.querySelectorAll(".tv-item-value"), (node) => node.textContent),
+    ).toEqual(["2", "1"]);
+  });
+
   it("shows absolute and percentage differences from the best", () => {
     document.body.insertAdjacentHTML(
       "beforeend",
@@ -308,6 +351,9 @@ describe("Televizer viewport lifecycle", () => {
     televizer.focus(document.querySelector<HTMLElement>("#latency")!);
     const shadow = document.querySelector("televizer-overlay")!.shadowRoot!;
 
+    document.dispatchEvent(
+      new KeyboardEvent("keydown", { bubbles: true, key: "l", code: "KeyL" }),
+    );
     televizer.setTransform("difference");
     expect(
       Array.from(shadow.querySelectorAll(".tv-item-value"), (node) => node.textContent),

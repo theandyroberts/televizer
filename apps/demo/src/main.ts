@@ -16,7 +16,9 @@ function renderState(state: TelevizerState): void {
       percent: " · % gap",
     };
     modeState.lastChild!.textContent = state.active
-      ? ` ${state.scope}${transformLabels[state.transform]}`
+      ? ` ${state.scope}${transformLabels[state.transform]}${
+          state.comparisonDirection === "lower" ? " · lower wins" : ""
+        }`
       : " Off";
   }
   if (activate) {

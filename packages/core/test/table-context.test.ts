@@ -114,6 +114,32 @@ describe("native table context", () => {
       expect(row.items.map((entry) => entry.rank)).toEqual([1, 2]);
     }
   });
+
+  it("defaults an unclear direction to higher and accepts a lower override", () => {
+    document.body.innerHTML = `
+      <table>
+        <thead><tr><th>Task</th><th>System A</th><th>System B</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Current</th><td id="unclear">73.9</td><td>70.7</td></tr>
+          <tr><th scope="row">Peer</th><td>80.2</td><td>60.1</td></tr>
+        </tbody>
+      </table>
+    `;
+    const target = document.querySelector<HTMLElement>("#unclear")!;
+    const higher = buildPresentationModel(target, "row");
+    const lower = buildPresentationModel(target, "row", "lower");
+
+    expect(higher).toMatchObject({
+      kind: "collection",
+      rankDirection: "higher",
+      items: [{ rank: 2 }, { rank: 1 }],
+    });
+    expect(lower).toMatchObject({
+      kind: "collection",
+      rankDirection: "lower",
+      items: [{ rank: 1 }, { rank: 2 }],
+    });
+  });
 });
 
 describe("media presentation models", () => {

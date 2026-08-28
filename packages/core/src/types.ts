@@ -1,5 +1,6 @@
 export type TelevizerScope = "element" | "row" | "column";
 export type TelevizerTransform = "values" | "rank" | "difference" | "percent";
+export type TelevizerComparisonDirection = "higher" | "lower";
 export type RankDirection = "higher" | "lower" | "unknown";
 export type PresentationOrientation = "single" | "horizontal" | "vertical";
 export type PresentationMediaType = "image" | "video" | "embed";
@@ -8,6 +9,7 @@ export interface TelevizerState {
   active: boolean;
   scope: TelevizerScope;
   transform: TelevizerTransform;
+  comparisonDirection: TelevizerComparisonDirection;
 }
 
 export interface TelevizerOptions {
