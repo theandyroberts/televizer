@@ -71,4 +71,26 @@ describe("HoverIntent", () => {
 
     expect(pendingEnd).toHaveBeenCalledTimes(2);
   });
+
+  it("holds the active target while cancelling a pending traversal", () => {
+    vi.useFakeTimers();
+    const acquired: string[] = [];
+    const release = vi.fn();
+    const intent = new HoverIntent<string>({
+      acquireDelay: 10,
+      traverseDelay: 20,
+      releaseDelay: 30,
+      onAcquire: (target) => acquired.push(target),
+      onRelease: release,
+    });
+
+    intent.move("first");
+    vi.advanceTimersByTime(10);
+    intent.move("second");
+    intent.hold();
+    vi.advanceTimersByTime(50);
+
+    expect(acquired).toEqual(["first"]);
+    expect(release).not.toHaveBeenCalled();
+  });
 });

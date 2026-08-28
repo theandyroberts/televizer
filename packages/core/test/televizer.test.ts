@@ -199,7 +199,7 @@ describe("Televizer viewport lifecycle", () => {
     ).toBe("82.1");
   });
 
-  it("latches row and column presentations until explicit dismissal", () => {
+  it("holds a column across its cells but traverses to a peer header", () => {
     vi.useFakeTimers();
     document.body.insertAdjacentHTML(
       "beforeend",
@@ -216,7 +216,7 @@ describe("Televizer viewport lifecycle", () => {
     const shadow = document.querySelector("televizer-overlay")!.shadowRoot!;
 
     vi.advanceTimersByTime(421);
-    for (const selector of ["#gpt-gpqa", "#claude-gpqa", "#mmlu-head"]) {
+    for (const selector of ["#gpt-gpqa", "#claude-gpqa"]) {
       document.querySelector<HTMLElement>(selector)!.dispatchEvent(
         new MouseEvent("pointermove", { bubbles: true, clientX: 100, clientY: 100 }),
       );
@@ -231,12 +231,6 @@ describe("Televizer viewport lifecycle", () => {
       "true",
     );
 
-    document.body.dispatchEvent(
-      new MouseEvent("pointerdown", { bubbles: true, button: 0 }),
-    );
-    document.body.dispatchEvent(
-      new MouseEvent("pointerup", { bubbles: true, button: 0 }),
-    );
     document.querySelector<HTMLElement>("#mmlu-head")!.dispatchEvent(
       new MouseEvent("pointermove", { bubbles: true, clientX: 100, clientY: 100 }),
     );
@@ -246,6 +240,38 @@ describe("Televizer viewport lifecycle", () => {
     expect(
       shadow.querySelector<HTMLElement>(".tv-collection-title")!.textContent,
     ).toBe("MMLU score");
+  });
+
+  it("traverses directly from one row header to another", () => {
+    vi.useFakeTimers();
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      `<table>
+        <thead><tr><th>CDN</th><th>Virginia TTFB</th><th>Oregon TTFB</th></tr></thead>
+        <tbody>
+          <tr><th id="adobe" scope="row">Adobe</th><td>38 ms</td><td>74 ms</td></tr>
+          <tr><th scope="row">Stripo</th><td>67 ms</td><td>48 ms</td></tr>
+          <tr><th id="cloudflare" scope="row">Cloudflare</th><td>18 ms</td><td>26 ms</td></tr>
+        </tbody>
+      </table>`,
+    );
+    televizer = new Televizer({ document, acquireDelay: 10 }).mount();
+    televizer.focus(document.querySelector<HTMLElement>("#cloudflare")!);
+    const shadow = document.querySelector("televizer-overlay")!.shadowRoot!;
+
+    vi.advanceTimersByTime(421);
+    document.querySelector<HTMLElement>("#adobe")!.dispatchEvent(
+      new MouseEvent("pointermove", { bubbles: true, clientX: 80, clientY: 80 }),
+    );
+    vi.advanceTimersByTime(10);
+
+    expect(televizer.getState().scope).toBe("row");
+    expect(
+      shadow.querySelector<HTMLElement>(".tv-collection-title")!.textContent,
+    ).toBe("Adobe");
+    expect(
+      Array.from(shadow.querySelectorAll(".tv-item-value"), (node) => node.textContent),
+    ).toEqual(["38 ms", "74 ms"]);
   });
 
   it("opens and closes the compact keyboard help with question mark", () => {

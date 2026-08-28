@@ -196,20 +196,33 @@ export class Televizer {
     ) {
       return;
     }
-    if (this.overlay.ownsEvent(event)) return;
+    if (this.overlay.ownsEvent(event)) {
+      if (this.currentTarget && this.state.scope !== "element") {
+        this.intent.hold();
+        this.overlay.hideIntent();
+      }
+      return;
+    }
     const now = this.document.defaultView?.performance.now() ?? 0;
     if (this.currentTarget && now < this.pointerSuppressedUntil) return;
     this.pointerPosition = { x: event.clientX, y: event.clientY };
-    if (this.currentTarget && this.state.scope !== "element") {
-      this.overlay.hideIntent();
-      return;
-    }
     this.overlay.moveIntent(event.clientX, event.clientY);
     if (this.primaryPointerDown || event.buttons === 1) {
       this.intent.move(null);
       return;
     }
     const target = this.resolver.resolve(event.target);
+    if (
+      this.currentTarget &&
+      this.state.scope !== "element" &&
+      (target === this.currentTarget ||
+        !target ||
+        inferScopeFromTableTarget(target) !== this.state.scope)
+    ) {
+      this.intent.hold();
+      this.overlay.hideIntent();
+      return;
+    }
     this.intent.move(target);
   }
 

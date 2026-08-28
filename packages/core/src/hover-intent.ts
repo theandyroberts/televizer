@@ -51,6 +51,11 @@ export class HoverIntent<T> {
     this.scheduleRelease();
   }
 
+  hold(): void {
+    this.clearRelease();
+    this.cancelPending();
+  }
+
   reset(): void {
     this.cancelPending();
     this.active = null;
