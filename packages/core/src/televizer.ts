@@ -203,15 +203,27 @@ export class Televizer {
       }
       return;
     }
+    const target = this.resolver.resolve(event.target);
+    const peerCollectionTarget =
+      this.currentTarget &&
+      this.state.scope !== "element" &&
+      target &&
+      target !== this.currentTarget &&
+      inferScopeFromTableTarget(target) === this.state.scope;
     const now = this.document.defaultView?.performance.now() ?? 0;
-    if (this.currentTarget && now < this.pointerSuppressedUntil) return;
+    if (
+      this.currentTarget &&
+      now < this.pointerSuppressedUntil &&
+      !peerCollectionTarget
+    ) {
+      return;
+    }
     this.pointerPosition = { x: event.clientX, y: event.clientY };
     this.overlay.moveIntent(event.clientX, event.clientY);
     if (this.primaryPointerDown || event.buttons === 1) {
       this.intent.move(null);
       return;
     }
-    const target = this.resolver.resolve(event.target);
     if (
       this.currentTarget &&
       this.state.scope !== "element" &&

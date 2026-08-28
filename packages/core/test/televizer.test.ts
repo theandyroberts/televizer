@@ -259,7 +259,6 @@ describe("Televizer viewport lifecycle", () => {
     televizer.focus(document.querySelector<HTMLElement>("#cloudflare")!);
     const shadow = document.querySelector("televizer-overlay")!.shadowRoot!;
 
-    vi.advanceTimersByTime(421);
     document.querySelector<HTMLElement>("#adobe")!.dispatchEvent(
       new MouseEvent("pointermove", { bubbles: true, clientX: 80, clientY: 80 }),
     );
