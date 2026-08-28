@@ -100,6 +100,17 @@ function nativeTableContext(
     });
 
   const rowRankLabel = rowItems.map((item) => item.label).join(" ");
+  const cornerHeader = Array.from(table.tHead?.rows ?? [])
+    .reverse()
+    .map((headerRow) => headerRow.cells.item(0))
+    .find((candidate): candidate is HTMLTableCellElement => candidate != null);
+  const hasSemanticRowHeader = rowLabelCell?.matches(
+    "th[scope='row'],[role='rowheader']",
+  );
+  const rowRankStrategy =
+    !normalizedText(cornerHeader) && !hasSemanticRowHeader
+      ? "within-collection"
+      : "per-column";
   return {
     table,
     cell,
@@ -109,6 +120,7 @@ function nativeTableContext(
     columnTitle,
     rowItems,
     columnItems,
+    rowRankStrategy,
     rowRankDirection: resolvedRankDirection(
       rowRankLabel,
       explicitRankDirection(row),
@@ -289,6 +301,10 @@ function hintedGridContext(
           .televizerLabel || `Item ${index + 1}`,
       ),
     ),
+    rowRankStrategy:
+      grid.dataset.televizerRowRank === "within-row"
+        ? "within-collection"
+        : "per-column",
     rowRankDirection: resolvedRankDirection(
       rowTitle,
       explicitRankDirection(row) ?? explicitRankDirection(grid),

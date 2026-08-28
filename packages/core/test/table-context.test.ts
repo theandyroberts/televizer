@@ -140,6 +140,34 @@ describe("native table context", () => {
       items: [{ rank: 1 }, { rank: 2 }],
     });
   });
+
+  it("recognizes a blank-corner table with models across columns as transposed", () => {
+    document.body.innerHTML = `
+      <table>
+        <thead><tr><th></th><th>Qwen Flash</th><th>Qwen Plus</th><th>DeepSeek</th></tr></thead>
+        <tbody>
+          <tr><td id="params"># Params</td><td>125B</td><td>397B</td><td>284B</td></tr>
+          <tr><td>Agentic coding</td><td>58.7</td><td>16.5</td><td>54.4</td></tr>
+        </tbody>
+      </table>
+    `;
+    const row = buildPresentationModel(
+      document.querySelector<HTMLElement>("#params")!,
+      "row",
+      "higher",
+    );
+
+    expect(row).toMatchObject({
+      kind: "collection",
+      title: "# Params",
+      rankStrategy: "within-collection",
+      items: [
+        { label: "Qwen Flash", value: "125B" },
+        { label: "Qwen Plus", value: "397B" },
+        { label: "DeepSeek", value: "284B" },
+      ],
+    });
+  });
 });
 
 describe("media presentation models", () => {

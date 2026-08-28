@@ -68,6 +68,9 @@ surface.
 - An ordinary table value presents only that cell.
 - A row header presents the full row.
 - A column header presents the full column.
+- Conventional entity-row tables rank every row value within its own metric
+  column. Blank-corner transposed tables—benchmarks down the rows and models
+  across the columns—rank the comparable values across the presented row.
 - Row and column presentations stay latched while the pointer moves across
   their cells or the lifted panel.
 - Hovering a different row or column header traverses directly to that peer.

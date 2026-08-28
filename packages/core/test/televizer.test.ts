@@ -336,6 +336,32 @@ describe("Televizer viewport lifecycle", () => {
     ).toEqual(["2", "1"]);
   });
 
+  it("ranks a transposed benchmark row across its model columns", () => {
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      `<table>
+        <thead>
+          <tr><th></th><th>Qwen3.8-Flash-Next</th><th>Qwen3.8-27B</th><th>Qwen3.7-Plus</th><th>DeepSeek-V4</th><th>Claude</th></tr>
+        </thead>
+        <tbody>
+          <tr><td id="params"># Params</td><td>125B</td><td>27B</td><td>397B</td><td>284B</td><td>--</td></tr>
+          <tr><td>Agentic coding</td><td>58.7</td><td>42.2</td><td>16.5</td><td>54.4</td><td>--</td></tr>
+        </tbody>
+      </table>`,
+    );
+    televizer = new Televizer({ document }).mount();
+    televizer.focus(document.querySelector<HTMLElement>("#params")!);
+    televizer.setTransform("rank");
+    const shadow = document.querySelector("televizer-overlay")!.shadowRoot!;
+
+    expect(
+      Array.from(shadow.querySelectorAll(".tv-item-value"), (node) => node.textContent),
+    ).toEqual(["3", "4", "1", "2", "--"]);
+    expect(shadow.querySelector<HTMLElement>(".tv-rank-note")!.textContent).toBe(
+      "Higher is better",
+    );
+  });
+
   it("shows absolute and percentage differences from the best", () => {
     document.body.insertAdjacentHTML(
       "beforeend",

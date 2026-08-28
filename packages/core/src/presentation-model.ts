@@ -170,7 +170,7 @@ function collectionModel(
     title: row ? context.rowTitle : context.columnTitle,
     items: row ? context.rowItems : context.columnItems,
     rankDirection: row ? context.rowRankDirection : context.columnRankDirection,
-    rankStrategy: row ? "per-column" : "within-collection",
+    rankStrategy: row ? context.rowRankStrategy : "within-collection",
     orientation: row ? "horizontal" : "vertical",
     sourceElements,
     sourceRect: unionRects(sourceElements),

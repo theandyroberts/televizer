@@ -94,6 +94,7 @@ export interface TableContext {
   columnTitle: string;
   rowItems: PresentationItem[];
   columnItems: PresentationItem[];
+  rowRankStrategy: "within-collection" | "per-column";
   rowRankDirection: RankDirection;
   columnRankDirection: RankDirection;
 }
