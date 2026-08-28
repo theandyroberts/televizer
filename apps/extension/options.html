@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Televizer settings</title>
+    <link rel="stylesheet" href="/src/options.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <div class="mark" aria-hidden="true">T</div>
+        <div>
+          <p class="eyebrow">TELEVIZER</p>
+          <h1>Extension settings</h1>
+          <p class="lede">Make the web presentable, only where you want it.</p>
+        </div>
+      </header>
+
+      <section aria-labelledby="activation-heading">
+        <h2 id="activation-heading">Activation</h2>
+        <p>
+          Click the toolbar icon or press <kbd>Alt</kbd> + <kbd>Shift</kbd> +
+          <kbd>T</kbd> to use Televizer on the current page. That temporary
+          access does not require permanent permission to every website.
+        </p>
+      </section>
+
+      <section aria-labelledby="automatic-heading">
+        <div class="setting-row">
+          <div>
+            <h2 id="automatic-heading">Automatically enable everywhere</h2>
+            <p>
+              Make Televizer ready as each ordinary webpage opens. Chrome will
+              ask before granting this broader access.
+            </p>
+          </div>
+          <label class="switch">
+            <input id="auto-everywhere" type="checkbox" />
+            <span aria-hidden="true"></span>
+            <span class="sr-only">Automatically enable everywhere</span>
+          </label>
+        </div>
+        <p id="permission-status" class="status" role="status"></p>
+      </section>
+
+      <section aria-labelledby="sites-heading">
+        <h2 id="sites-heading">Automatically enabled websites</h2>
+        <p>
+          Right-click the Televizer toolbar icon on a webpage and choose
+          <strong>Automatically enable on this website</strong> to add it.
+        </p>
+        <ul id="site-list" class="site-list"></ul>
+        <p id="empty-sites" class="empty">No websites have permanent access.</p>
+      </section>
+    </main>
+    <script type="module" src="/src/options.ts"></script>
+  </body>
+</html>

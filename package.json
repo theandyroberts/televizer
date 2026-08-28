@@ -8,10 +8,10 @@
     "apps/*"
   ],
   "scripts": {
-    "build": "npm run build --workspace=@televizer/core && npm run build --workspace=@televizer/demo",
+    "build": "npm run build --workspace=@televizer/core && npm run build --workspace=@televizer/demo && npm run build --workspace=@televizer/extension",
     "dev": "npm run dev --workspace=@televizer/demo",
-    "test": "npm run test --workspace=@televizer/core",
-    "typecheck": "npm run typecheck --workspace=@televizer/core && npm run typecheck --workspace=@televizer/demo"
+    "test": "npm run test --workspace=@televizer/core && npm run test --workspace=@televizer/extension",
+    "typecheck": "npm run typecheck --workspace=@televizer/core && npm run typecheck --workspace=@televizer/demo && npm run typecheck --workspace=@televizer/extension"
   },
   "engines": {
     "node": ">=22"

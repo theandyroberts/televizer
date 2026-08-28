@@ -18,6 +18,10 @@ This repository contains Televizer Core and a Vite playground that exercises
 element, table, comparison, quote, media zoom, hover-intent, and dismissal
 behavior.
 
+It also contains a Manifest V3 Chrome extension that makes the same engine
+available on ordinary websites without permanently requesting access to every
+site at installation.
+
 ## Try the demo
 
 [Try Televizer in the browser](https://theandyroberts.github.io/televizer/),
@@ -135,6 +139,35 @@ When active, Televizer sets `data-televizer-active` on `<html>`, allowing a
 migration stylesheet to disable an older hover effect only while Televizer is
 running.
 
+## Chrome extension
+
+Build the unpacked extension:
+
+```bash
+npm install
+npm run build --workspace=@televizer/extension
+```
+
+Then open `chrome://extensions`, turn on **Developer mode**, choose **Load
+unpacked**, and select `apps/extension/dist`.
+
+Click the Televizer toolbar icon on any ordinary webpage to inject and toggle
+Televizer using temporary `activeTab` access. The extension shortcut is
+`Alt/Option + Shift + T`; once Core is present on a page, its existing
+`Option/Alt + T` shortcut also works.
+
+Right-click the toolbar icon for the two persistent choices:
+
+- **Automatically enable on this website** requests access only to the current
+  HTTP or HTTPS origin.
+- **Automatically enable everywhere** requests all-sites access only when that
+  option is selected.
+
+Use **Manage Televizer settings** in the same menu to remove saved websites or
+turn off automatic all-sites access. Browser-controlled pages such as
+`chrome://extensions` and the Chrome Web Store do not allow content-script
+injection.
+
 ### Tables and comparison direction
 
 Native table headers provide row and column meaning automatically. Declare the
@@ -181,6 +214,7 @@ const televizer = new Televizer({
 ```text
 packages/core/   Framework- and browser-wrapper-agnostic presentation engine
 apps/demo/       Torture-test playground and product demo
+apps/extension/  Manifest V3 Chrome extension and permission policy
 docs/            Product principles and integration notes
 ```
 
