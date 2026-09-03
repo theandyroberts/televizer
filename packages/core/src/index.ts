@@ -8,6 +8,7 @@ export {
   rankItems,
 } from "./rank";
 export { inferScopeFromTableTarget, resolveTableContext } from "./table-context";
+export { governQuote } from "./quote";
 export type {
   CollectionPresentation,
   ElementPresentation,
@@ -15,6 +16,7 @@ export type {
   PresentationItem,
   PresentationMediaType,
   PresentationModel,
+  QuotePresentation,
   RankDirection,
   TableContext,
   TelevizerComparisonDirection,

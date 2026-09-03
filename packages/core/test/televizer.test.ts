@@ -346,7 +346,7 @@ describe("Televizer viewport lifecycle", () => {
       Array.from(shadow.querySelectorAll(".tv-item-value"), (node) => node.textContent),
     ).toEqual(["2", "1"]);
     expect(shadow.querySelector<HTMLElement>(".tv-rank-note")!.textContent).toBe(
-      "Higher is better",
+      "Higher is better.",
     );
 
     document.dispatchEvent(
@@ -357,7 +357,7 @@ describe("Televizer viewport lifecycle", () => {
       Array.from(shadow.querySelectorAll(".tv-item-value"), (node) => node.textContent),
     ).toEqual(["1", "2"]);
     expect(shadow.querySelector<HTMLElement>(".tv-rank-note")!.textContent).toBe(
-      "Lower is better",
+      "Lower is better.",
     );
 
     document.dispatchEvent(
@@ -391,7 +391,7 @@ describe("Televizer viewport lifecycle", () => {
       Array.from(shadow.querySelectorAll(".tv-item-value"), (node) => node.textContent),
     ).toEqual(["3", "4", "1", "2", "--"]);
     expect(shadow.querySelector<HTMLElement>(".tv-rank-note")!.textContent).toBe(
-      "Higher is better",
+      "Higher is better.",
     );
   });
 
@@ -647,11 +647,11 @@ describe("Televizer viewport lifecycle", () => {
     vi.advanceTimersByTime(1050);
 
     expect(
-      shadow.querySelector<HTMLElement>(".tv-element-title")!.textContent,
-    ).toBe("Quote");
-    expect(
-      shadow.querySelector<HTMLElement>(".tv-element-value")!.textContent,
+      shadow.querySelector<HTMLElement>(".tv-quote-text")!.textContent,
     ).toBe("source order");
+    expect(shadow.querySelector<HTMLElement>(".tv-scope")!.textContent).toBe(
+      "quote",
+    );
 
     Object.defineProperty(document, "elementFromPoint", {
       configurable: true,

@@ -1,10 +1,11 @@
 import { HoverIntent } from "./hover-intent";
 import { PresentationOverlay } from "./overlay";
 import { buildPresentationModel } from "./presentation-model";
+import { governQuote } from "./quote";
 import { inferScopeFromTableTarget } from "./table-context";
 import { TargetResolver } from "./target-resolver";
 import type {
-  ElementPresentation,
+  QuotePresentation,
   TelevizerOptions,
   TelevizerScope,
   TelevizerState,
@@ -287,7 +288,7 @@ export class Televizer {
       return null;
     }
     const text = selection.toString().replace(/\s+/g, " ").trim();
-    if (!text || text.length > 1200) return null;
+    if (!text) return null;
     const range = selection.getRangeAt(0);
     const common =
       range.commonAncestorContainer instanceof Element
@@ -495,7 +496,10 @@ export class Televizer {
           this.state.scope,
           this.state.comparisonDirection,
         );
-    if (model.kind === "element" && this.state.scope !== "element") {
+    if (
+      (model.kind === "element" || model.kind === "quote") &&
+      this.state.scope !== "element"
+    ) {
       this.overlay.flash(`${this.state.scope.toUpperCase()} NOT FOUND`);
     }
     this.overlay.show(model, this.state);
@@ -503,15 +507,20 @@ export class Televizer {
     this.pointerSuppressedUntil = now + 420;
   }
 
-  private buildSelectionModel(target: SelectionTarget): ElementPresentation {
+  private buildSelectionModel(target: SelectionTarget): QuotePresentation {
     const common = target.range.commonAncestorContainer;
     const sourceElement =
       common instanceof HTMLElement ? common : common.parentElement;
+    const quote = governQuote(target.text);
+    const citation = sourceElement?.closest("blockquote")?.querySelector("cite");
+    const explicitSource = sourceElement
+      ?.closest<HTMLElement>("[data-televizer-context]")
+      ?.dataset.televizerContext;
     return {
-      kind: "element",
-      title: "Quote",
-      value: target.text,
-      context: "Selected text",
+      kind: "quote",
+      quote: quote.text,
+      source:
+        explicitSource || citation?.textContent?.replace(/\s+/g, " ").trim(),
       orientation: "single",
       sourceElements: sourceElement ? [sourceElement] : [],
       sourceRect: target.sourceRect,

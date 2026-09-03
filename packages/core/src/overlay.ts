@@ -45,6 +45,7 @@ export class PresentationOverlay {
   ) {
     this.host = document.createElement("televizer-overlay");
     this.host.dataset.televizerIgnore = "";
+    this.host.dataset.theme = "editorial";
     this.host.style.pointerEvents = "none";
     const shadow = this.host.attachShadow({ mode: "open" });
     const style = document.createElement("style");
@@ -100,6 +101,7 @@ export class PresentationOverlay {
     this.panel.removeAttribute("aria-label");
     this.renderKicker(state, model);
     if (model.kind === "element") this.renderElement(model);
+    else if (model.kind === "quote") this.renderQuote(model);
     else if (model.kind === "media") this.renderMedia(model);
     else this.renderCollection(model, state.transform);
 
@@ -243,7 +245,9 @@ export class PresentationOverlay {
     const scopeLabel =
       model.kind === "media"
         ? `${model.mediaType} · zoom`
-        : `${state.scope}${transformLabels[state.transform]}`;
+        : model.kind === "quote"
+          ? "quote"
+          : `${state.scope}${transformLabels[state.transform]}`;
     controls.append(
       node(
         this.document,
@@ -266,6 +270,15 @@ export class PresentationOverlay {
     if (model.context) {
       this.panel.append(node(this.document, "p", "tv-context", model.context));
     }
+  }
+
+  private renderQuote(model: Extract<PresentationModel, { kind: "quote" }>): void {
+    const quote = node(this.document, "blockquote", "tv-quote");
+    quote.append(node(this.document, "p", "tv-quote-text", model.quote));
+    if (model.source) {
+      quote.append(node(this.document, "cite", "tv-quote-source", model.source));
+    }
+    this.panel.append(quote);
   }
 
   private renderMedia(model: Extract<PresentationModel, { kind: "media" }>): void {
@@ -375,12 +388,7 @@ export class PresentationOverlay {
           : model.items;
     const heading = node(this.document, "div", "tv-collection-heading");
     const title = node(this.document, "h2", "tv-collection-title", model.title);
-    title.dataset.fit =
-      model.title.length > 22
-        ? "tight"
-        : model.title.length > 14
-          ? "compact"
-          : "normal";
+    title.dataset.long = String(model.title.length > 28);
     heading.append(title);
     if (transform === "difference" && model.rankStrategy === "within-collection") {
       const best = items.find(
@@ -396,6 +404,25 @@ export class PresentationOverlay {
           ),
         );
       }
+    }
+    const missingComparison = items.some((item) => {
+      if (item.numericValue == null) return false;
+      if (transform === "rank") return item.rank == null;
+      if (transform === "difference") return item.differenceFromBest == null;
+      if (transform === "percent") return item.percentDifferenceFromBest == null;
+      return false;
+    });
+    if (transform !== "values" && !missingComparison) {
+      const direction = node(
+        this.document,
+        "p",
+        "tv-rank-note",
+        model.rankDirection === "lower"
+          ? "Lower is better."
+          : "Higher is better.",
+      );
+      direction.dataset.kind = "direction";
+      heading.append(direction);
     }
     this.panel.append(heading);
     const list = node(this.document, "div", "tv-items");
@@ -440,37 +467,19 @@ export class PresentationOverlay {
       list.append(entry);
     });
     this.panel.append(list);
-    const missingComparison = items.some((item) => {
-      if (item.numericValue == null) return false;
-      if (transform === "rank") return item.rank == null;
-      if (transform === "difference") return item.differenceFromBest == null;
-      if (transform === "percent") return item.percentDifferenceFromBest == null;
-      return false;
-    });
     if (transform !== "values" && missingComparison) {
-      this.panel.append(
-        node(
-          this.document,
-          "div",
-          "tv-rank-note",
-          transform === "percent"
-            ? "Percent difference needs a known direction and a non-zero best value."
-            : model.rankStrategy === "per-column"
-              ? "Direction is unclear for one or more columns."
-              : "Direction is unclear. Add data-televizer-rank=\"higher\" or \"lower\".",
-        ),
+      const warning = node(
+        this.document,
+        "div",
+        "tv-rank-note",
+        transform === "percent"
+          ? "Percent difference needs a known direction and a non-zero best value."
+          : model.rankStrategy === "per-column"
+            ? "Direction is unclear for one or more columns."
+            : "Direction is unclear. Add data-televizer-rank=\"higher\" or \"lower\".",
       );
-    } else if (transform !== "values") {
-      this.panel.append(
-        node(
-          this.document,
-          "div",
-          "tv-rank-note",
-          model.rankDirection === "lower"
-            ? "Lower is better"
-            : "Higher is better",
-        ),
-      );
+      warning.dataset.kind = "warning";
+      this.panel.append(warning);
     }
   }
 
@@ -488,43 +497,45 @@ export class PresentationOverlay {
     const view = this.document.defaultView;
     const viewportWidth = view?.innerWidth ?? 1280;
     const viewportHeight = view?.innerHeight ?? 720;
-    const margin = 28;
+    const safeX = Math.max(24, viewportWidth * 0.05);
+    const safeY = Math.max(20, viewportHeight * 0.05);
     const isMedia = model.kind === "media";
-    const sideMargin =
-      !isMedia && model.orientation === "horizontal" ? 18 : margin;
-    const estimatedWidth =
+    const isHorizontal = !isMedia && model.orientation === "horizontal";
+    const fallbackWidth =
       isMedia
-        ? Math.min(960, viewportWidth - margin * 2)
-        : model.orientation === "horizontal"
-        ? Math.min(1120, viewportWidth - 28)
-        : Math.min(520, viewportWidth - margin * 2);
-    const estimatedHeight =
+        ? Math.min(1100, viewportWidth - safeX * 2)
+        : isHorizontal
+          ? Math.min(1500, viewportWidth - safeX * 2)
+          : Math.min(720, viewportWidth - safeX * 2);
+    const fallbackHeight =
       isMedia
-        ? Math.min(760, viewportHeight * 0.86)
-        : model.orientation === "horizontal"
-          ? 260
-          : Math.min(620, viewportHeight * 0.72);
+        ? Math.min(780, viewportHeight - safeY * 2)
+        : isHorizontal
+          ? Math.min(600, viewportHeight * 0.68)
+          : Math.min(700, viewportHeight * 0.78);
+    const panelWidth = this.panel.offsetWidth || fallbackWidth;
+    const panelHeight = this.panel.offsetHeight || fallbackHeight;
     const source = model.sourceRect;
 
     let left = source.right + 26;
-    let top = Math.max(margin, source.top + source.height / 2 - estimatedHeight / 2);
+    let top = Math.max(safeY, source.top + source.height / 2 - panelHeight / 2);
     if (isMedia) {
-      left = Math.max(margin, (viewportWidth - estimatedWidth) / 2);
-      top = Math.max(margin, (viewportHeight - estimatedHeight) / 2);
-    } else if (model.orientation === "horizontal") {
-      left = Math.max(sideMargin, (viewportWidth - estimatedWidth) / 2);
+      left = Math.max(safeX, (viewportWidth - panelWidth) / 2);
+      top = Math.max(safeY, (viewportHeight - panelHeight) / 2);
+    } else if (isHorizontal) {
+      left = Math.max(safeX, (viewportWidth - panelWidth) / 2);
       top = source.bottom + 22;
-      if (top + estimatedHeight > viewportHeight - margin) {
-        top = Math.max(margin, source.top - estimatedHeight - 22);
+      if (top + panelHeight > viewportHeight - safeY) {
+        top = Math.max(safeY, source.top - panelHeight - 22);
       }
-    } else if (left + estimatedWidth > viewportWidth - margin) {
-      left = source.left - estimatedWidth - 26;
+    } else if (left + panelWidth > viewportWidth - safeX) {
+      left = source.left - panelWidth - 26;
     }
-    if (left < sideMargin) {
-      left = Math.max(sideMargin, (viewportWidth - estimatedWidth) / 2);
+    if (left < safeX) {
+      left = Math.max(safeX, (viewportWidth - panelWidth) / 2);
     }
-    if (top + estimatedHeight > viewportHeight - margin) {
-      top = Math.max(margin, viewportHeight - estimatedHeight - margin);
+    if (top + panelHeight > viewportHeight - safeY) {
+      top = Math.max(safeY, viewportHeight - panelHeight - safeY);
     }
 
     this.panel.style.left = `${left}px`;

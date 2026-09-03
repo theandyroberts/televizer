@@ -46,6 +46,12 @@ export interface ElementPresentation extends PresentationBase {
   context: string;
 }
 
+export interface QuotePresentation extends PresentationBase {
+  kind: "quote";
+  quote: string;
+  source?: string;
+}
+
 export interface MediaPresentation extends PresentationBase {
   kind: "media";
   mediaType: PresentationMediaType;
@@ -82,6 +88,7 @@ export interface CollectionPresentation extends PresentationBase {
 
 export type PresentationModel =
   | ElementPresentation
+  | QuotePresentation
   | MediaPresentation
   | CollectionPresentation;
 
