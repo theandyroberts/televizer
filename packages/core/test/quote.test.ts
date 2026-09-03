@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { overlayStyles } from "../src/overlay-styles";
 import { governQuote } from "../src/quote";
 
 describe("governQuote", () => {
@@ -34,5 +35,13 @@ describe("governQuote", () => {
     expect(governed.wordCount).toBe(24);
     expect(governed.text.endsWith("\u2026")).toBe(true);
     expect(governed.text.split(" ")).toHaveLength(24);
+  });
+
+  it("leaves all browser wrapping to the governed quote instead of CSS truncation", () => {
+    const quoteRule = overlayStyles.match(/\.tv-quote-text\s*\{([^}]*)\}/)?.[1];
+
+    expect(quoteRule).toContain("max-width: 42ch");
+    expect(quoteRule).not.toContain("line-clamp");
+    expect(quoteRule).not.toContain("overflow: hidden");
   });
 });

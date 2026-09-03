@@ -51,7 +51,10 @@ swipe. The broadcast excerpt then follows these rules:
   break between words 12 and 24.
 - Fall back to 24 words when no natural break is available.
 - Normalize whitespace and use U+2026 (`…`) for edited excerpts.
-- Render at no more than four lines with a 42-character measure.
+- Aim for four lines or fewer with a 42-character measure calculated from the
+  quote's display type, while allowing narrower screens to wrap naturally.
+- Never use CSS line clamping to remove selected words. The quote governor is
+  the only layer allowed to shorten an excerpt.
 
 The governor edits before typography shrinks. Source attribution appears only
 when the page provides it through a nearby `cite` element or

@@ -149,19 +149,23 @@ export const overlayStyles = `
     font-size: clamp(16px, 2.2vh, 25px);
     font-weight: 570;
   }
-  .tv-quote { margin: 0; max-width: 42ch; }
+  .tv-quote {
+    width: 100%;
+    margin: 0;
+  }
   .tv-quote-text {
-    display: -webkit-box;
-    overflow: hidden;
+    width: 100%;
+    max-width: 42ch;
     margin: 0;
     color: var(--tv-ink);
     font-size: clamp(32px, 5vh, 62px);
     font-weight: 570;
     letter-spacing: 0;
     line-height: 1.22;
+    overflow-wrap: normal;
+    word-break: normal;
+    hyphens: none;
     text-wrap: balance;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 4;
   }
   .tv-quote-text::before { content: "\u201c"; color: var(--tv-ochre); }
   .tv-quote-text::after { content: "\u201d"; color: var(--tv-ochre); }
