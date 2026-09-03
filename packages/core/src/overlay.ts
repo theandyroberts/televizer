@@ -13,6 +13,20 @@ interface PresentationOverlayActions {
   onCloseHelp: () => void;
 }
 
+interface ChartRenderState {
+  source: HTMLElement;
+  frame: HTMLElement;
+  main: HTMLElement;
+  lens: HTMLElement;
+  lensSurface: HTMLElement;
+  pointer: { x: number; y: number };
+  sourceWidth: number;
+  sourceHeight: number;
+  scale: number;
+  offsetX: number;
+  offsetY: number;
+}
+
 function node<K extends keyof HTMLElementTagNameMap>(
   document: Document,
   tag: K,
@@ -36,6 +50,8 @@ export class PresentationOverlay {
   private readonly help: HTMLElement;
   private readonly toast: HTMLElement;
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
+  private chartRefreshTimer: ReturnType<typeof setTimeout> | null = null;
+  private chartState: ChartRenderState | null = null;
   private connectorFrame: number | null = null;
   private restoreMediaPlayback: (() => void) | null = null;
 
@@ -87,6 +103,7 @@ export class PresentationOverlay {
   destroy(): void {
     if (this.toastTimer) clearTimeout(this.toastTimer);
     this.finishMediaPlayback();
+    this.finishChart();
     this.stopConnectorTracking();
     this.host.remove();
   }
@@ -94,6 +111,7 @@ export class PresentationOverlay {
   show(model: PresentationModel, state: TelevizerState): void {
     this.mount();
     this.finishMediaPlayback();
+    this.finishChart();
     this.panel.replaceChildren();
     this.panel.dataset.orientation = model.orientation;
     this.panel.dataset.transform = state.transform;
@@ -102,6 +120,7 @@ export class PresentationOverlay {
     this.renderKicker(state, model);
     if (model.kind === "element") this.renderElement(model);
     else if (model.kind === "quote") this.renderQuote(model);
+    else if (model.kind === "chart") this.renderChart(model);
     else if (model.kind === "media") this.renderMedia(model);
     else this.renderCollection(model, state.transform);
 
@@ -114,6 +133,7 @@ export class PresentationOverlay {
 
   hide(): void {
     this.finishMediaPlayback();
+    this.finishChart();
     this.stage.dataset.visible = "false";
     this.setHelperVisible(false);
     this.hideIntent();
@@ -147,6 +167,73 @@ export class PresentationOverlay {
 
   hideIntent(): void {
     this.intentIndicator.dataset.visible = "false";
+  }
+
+  updateChartPointer(x: number, y: number, source: HTMLElement): boolean {
+    const state = this.chartState;
+    if (!state || state.source !== source) return false;
+    const sourceRect = source.getBoundingClientRect();
+    state.sourceWidth = Math.max(1, sourceRect.width);
+    state.sourceHeight = Math.max(1, sourceRect.height);
+    this.layoutChart();
+    const frameRect = state.frame.getBoundingClientRect();
+    const overSource = pointInside(x, y, sourceRect);
+    const overBroadcast = pointInside(x, y, frameRect);
+    if (!overSource && !overBroadcast) return false;
+
+    if (overBroadcast) {
+      state.pointer = {
+        x: Math.max(
+          0,
+          Math.min(
+            state.sourceWidth,
+            (x - frameRect.left - state.offsetX) / Math.max(state.scale, 0.001),
+          ),
+        ),
+        y: Math.max(
+          0,
+          Math.min(
+            state.sourceHeight,
+            (y - frameRect.top - state.offsetY) / Math.max(state.scale, 0.001),
+          ),
+        ),
+      };
+    } else {
+      state.pointer = {
+        x: Math.max(0, Math.min(sourceRect.width, x - sourceRect.left)),
+        y: Math.max(0, Math.min(sourceRect.height, y - sourceRect.top)),
+      };
+    }
+
+    this.dispatchChartPointer(state, sourceRect);
+    this.layoutChart();
+    if (!this.chartRefreshTimer) {
+      this.chartRefreshTimer = setTimeout(() => {
+        this.chartRefreshTimer = null;
+        this.refreshChartSnapshots();
+      }, 60);
+    }
+    return true;
+  }
+
+  private dispatchChartPointer(state: ChartRenderState, sourceRect: DOMRect): void {
+    const interactive =
+      (state.source.matches("canvas, svg") ? state.source : null) ??
+      state.source.querySelector<HTMLElement>(
+        "canvas, .recharts-wrapper, .highcharts-container, .plotly, svg",
+      ) ??
+      state.source;
+    const MouseEventConstructor =
+      this.document.defaultView?.MouseEvent ?? MouseEvent;
+    interactive.dispatchEvent(
+      new MouseEventConstructor("mousemove", {
+        bubbles: true,
+        cancelable: true,
+        composed: true,
+        clientX: sourceRect.left + state.pointer.x,
+        clientY: sourceRect.top + state.pointer.y,
+      }),
+    );
   }
 
   showHelp(): void {
@@ -221,6 +308,12 @@ export class PresentationOverlay {
       "tv-help-quote",
       "Select text, then pause over it to lift a quote.",
     );
+    quote.append(
+      this.document.createElement("br"),
+      this.document.createTextNode(
+        "On charts, gesture across the enlarged view to move the magnifier.",
+      ),
+    );
     help.append(header, list, quote);
     return help;
   }
@@ -245,6 +338,8 @@ export class PresentationOverlay {
     const scopeLabel =
       model.kind === "media"
         ? `${model.mediaType} · zoom`
+        : model.kind === "chart"
+          ? "chart · zoom"
         : model.kind === "quote"
           ? "quote"
           : `${state.scope}${transformLabels[state.transform]}`;
@@ -279,6 +374,143 @@ export class PresentationOverlay {
       quote.append(node(this.document, "cite", "tv-quote-source", model.source));
     }
     this.panel.append(quote);
+  }
+
+  private renderChart(model: Extract<PresentationModel, { kind: "chart" }>): void {
+    this.panel.setAttribute("aria-label", `${model.title} chart zoom`);
+    const frame = node(this.document, "div", "tv-chart-frame");
+    const main = node(this.document, "div", "tv-chart-main");
+    const lens = node(this.document, "div", "tv-chart-lens");
+    lens.setAttribute("aria-hidden", "true");
+    const lensSurface = node(this.document, "div", "tv-chart-lens-surface");
+    lens.append(lensSurface);
+    frame.append(main, lens);
+    this.panel.append(frame);
+
+    const rect = model.sourceElement.getBoundingClientRect();
+    this.chartState = {
+      source: model.sourceElement,
+      frame,
+      main,
+      lens,
+      lensSurface,
+      pointer: model.pointer,
+      sourceWidth: Math.max(1, rect.width),
+      sourceHeight: Math.max(1, rect.height),
+      scale: 1,
+      offsetX: 0,
+      offsetY: 0,
+    };
+    this.refreshChartSnapshots();
+    this.document.defaultView?.requestAnimationFrame(() => this.layoutChart());
+  }
+
+  private refreshChartSnapshots(): void {
+    const state = this.chartState;
+    if (!state || !state.source.isConnected) return;
+    state.main.replaceChildren(this.cloneChart(state.source));
+    state.lensSurface.replaceChildren(this.cloneChart(state.source));
+    this.layoutChart();
+  }
+
+  private cloneChart(source: HTMLElement): HTMLElement {
+    const clone = source.cloneNode(true) as HTMLElement;
+    const originals: Element[] = [source, ...source.querySelectorAll("*")];
+    const clones: Element[] = [clone, ...clone.querySelectorAll("*")];
+    const view = this.document.defaultView;
+    originals.forEach((original, index) => {
+      const copy = clones[index];
+      if (!copy || !view) return;
+      const computed = view.getComputedStyle(original);
+      const style = (copy as HTMLElement | SVGElement).style;
+      for (let propertyIndex = 0; propertyIndex < computed.length; propertyIndex += 1) {
+        const property = computed.item(propertyIndex);
+        style.setProperty(
+          property,
+          computed.getPropertyValue(property),
+          computed.getPropertyPriority(property),
+        );
+      }
+      style.setProperty("animation", "none", "important");
+      style.setProperty("transition", "none", "important");
+      copy.removeAttribute("id");
+
+      if (original instanceof HTMLImageElement && copy instanceof HTMLImageElement) {
+        copy.src = original.currentSrc || original.src;
+      }
+      if (original instanceof HTMLCanvasElement && copy instanceof HTMLCanvasElement) {
+        copy.width = original.width;
+        copy.height = original.height;
+        try {
+          copy.getContext("2d")?.drawImage(original, 0, 0);
+        } catch {
+          // A protected canvas may not permit copying; the rest of the chart remains visible.
+        }
+      }
+    });
+    Object.assign(clone.style, {
+      inset: "auto",
+      margin: "0",
+      position: "relative",
+      transform: "none",
+    });
+    clone.setAttribute("aria-hidden", "true");
+    return clone;
+  }
+
+  private layoutChart(): void {
+    const state = this.chartState;
+    if (!state) return;
+    const frameWidth = state.frame.clientWidth || Math.min(1400, state.sourceWidth);
+    const frameHeight = state.frame.clientHeight || Math.min(760, state.sourceHeight);
+    const scale = Math.min(
+      frameWidth / state.sourceWidth,
+      frameHeight / state.sourceHeight,
+    );
+    const renderedWidth = state.sourceWidth * scale;
+    const renderedHeight = state.sourceHeight * scale;
+    const offsetX = (frameWidth - renderedWidth) / 2;
+    const offsetY = (frameHeight - renderedHeight) / 2;
+    state.scale = scale;
+    state.offsetX = offsetX;
+    state.offsetY = offsetY;
+    Object.assign(state.main.style, {
+      width: `${state.sourceWidth}px`,
+      height: `${state.sourceHeight}px`,
+      left: `${offsetX}px`,
+      top: `${offsetY}px`,
+      transform: `scale(${scale})`,
+    });
+
+    const lensSize = Math.min(360, Math.max(220, frameWidth * 0.28));
+    const lensAnchorY = 0.98;
+    const focusX = offsetX + state.pointer.x * scale;
+    const focusY = offsetY + state.pointer.y * scale;
+    const lensLeft = Math.max(8, Math.min(focusX - lensSize / 2, frameWidth - lensSize - 8));
+    const lensTop = Math.max(
+      8,
+      Math.min(focusY - lensSize * lensAnchorY, frameHeight - lensSize - 8),
+    );
+    Object.assign(state.lens.style, {
+      width: `${lensSize}px`,
+      height: `${lensSize}px`,
+      left: `${lensLeft}px`,
+      top: `${lensTop}px`,
+    });
+    const zoom = 1.85;
+    Object.assign(state.lensSurface.style, {
+      width: `${state.sourceWidth}px`,
+      height: `${state.sourceHeight}px`,
+      left: `${lensSize / 2 - state.pointer.x * scale * zoom}px`,
+      top: `${lensSize * lensAnchorY - state.pointer.y * scale * zoom}px`,
+      transform: `scale(${scale * zoom})`,
+    });
+  }
+
+  private finishChart(): void {
+    if (this.chartRefreshTimer) clearTimeout(this.chartRefreshTimer);
+    this.chartRefreshTimer = null;
+    this.chartState = null;
   }
 
   private renderMedia(model: Extract<PresentationModel, { kind: "media" }>): void {
@@ -499,17 +731,17 @@ export class PresentationOverlay {
     const viewportHeight = view?.innerHeight ?? 720;
     const safeX = Math.max(24, viewportWidth * 0.05);
     const safeY = Math.max(20, viewportHeight * 0.05);
-    const isMedia = model.kind === "media";
-    const isHorizontal = !isMedia && model.orientation === "horizontal";
+    const isStage = model.kind === "media" || model.kind === "chart";
+    const isHorizontal = !isStage && model.orientation === "horizontal";
     const fallbackWidth =
-      isMedia
-        ? Math.min(1100, viewportWidth - safeX * 2)
+      isStage
+        ? Math.min(model.kind === "chart" ? 1500 : 1100, viewportWidth - safeX * 2)
         : isHorizontal
           ? Math.min(1500, viewportWidth - safeX * 2)
           : Math.min(720, viewportWidth - safeX * 2);
     const fallbackHeight =
-      isMedia
-        ? Math.min(780, viewportHeight - safeY * 2)
+      isStage
+        ? Math.min(model.kind === "chart" ? 900 : 780, viewportHeight - safeY * 2)
         : isHorizontal
           ? Math.min(600, viewportHeight * 0.68)
           : Math.min(700, viewportHeight * 0.78);
@@ -519,7 +751,7 @@ export class PresentationOverlay {
 
     let left = source.right + 26;
     let top = Math.max(safeY, source.top + source.height / 2 - panelHeight / 2);
-    if (isMedia) {
+    if (isStage) {
       left = Math.max(safeX, (viewportWidth - panelWidth) / 2);
       top = Math.max(safeY, (viewportHeight - panelHeight) / 2);
     } else if (isHorizontal) {
@@ -696,6 +928,10 @@ function compactBytes(
 
 function isTightUnit(suffix: string): boolean {
   return /^(?:%|ms|s|b|kb|mb|gb|tb|pb|eb)$/i.test(suffix);
+}
+
+function pointInside(x: number, y: number, rect: DOMRect): boolean {
+  return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
 }
 
 function pointOnRectEdge(

@@ -10,6 +10,7 @@ export {
 export { inferScopeFromTableTarget, resolveTableContext } from "./table-context";
 export { governQuote } from "./quote";
 export type {
+  ChartPresentation,
   CollectionPresentation,
   ElementPresentation,
   MediaPresentation,

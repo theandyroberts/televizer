@@ -56,4 +56,59 @@ describe("TargetResolver", () => {
       document.querySelector("#explicit"),
     );
   });
+
+  it("promotes an explicit chart above an image or canvas inside it", () => {
+    document.body.innerHTML = `
+      <figure id="chart" data-televizer-type="chart">
+        <figcaption>Benchmark score</figcaption>
+        <canvas id="plot"></canvas>
+      </figure>
+    `;
+    const resolver = new TargetResolver();
+
+    expect(resolver.resolve(document.querySelector("#plot"))).toBe(
+      document.querySelector("#chart"),
+    );
+  });
+
+  it("recognizes a large Recharts surface and returns its single-chart card", () => {
+    document.body.innerHTML = `
+      <div id="card"><h3>DeepSWE score</h3><div class="recharts-wrapper">
+        <svg class="recharts-surface" id="plot"><rect id="bar"></rect></svg>
+        <div class="recharts-tooltip-wrapper">Kimi · 64</div>
+      </div></div>
+    `;
+    const card = document.querySelector<HTMLElement>("#card")!;
+    const plot = document.querySelector<SVGElement>("#plot")!;
+    Object.defineProperty(card, "getBoundingClientRect", {
+      configurable: true,
+      value: () => new DOMRect(10, 10, 820, 520),
+    });
+    Object.defineProperty(plot, "getBoundingClientRect", {
+      configurable: true,
+      value: () => new DOMRect(30, 90, 780, 400),
+    });
+    const resolver = new TargetResolver();
+
+    expect(resolver.resolve(document.querySelector("#bar"))).toBe(card);
+  });
+
+  it("recognizes a structured HTML bar chart without chart-specific classes", () => {
+    document.body.innerHTML = `
+      <div id="chart">
+        <div>Humanity's Last Exam</div><div>Pass rate</div>
+        <div style="display:flex"><span>Fable 5.1</span><i></i><b id="bar">60.9</b></div>
+        <div style="display:flex"><span>Fable 5</span><i></i><b>57.8</b></div>
+        <div style="display:flex"><span>Opus 5</span><i></i><b>56.6</b></div>
+      </div>
+    `;
+    const chart = document.querySelector<HTMLElement>("#chart")!;
+    Object.defineProperty(chart, "getBoundingClientRect", {
+      configurable: true,
+      value: () => new DOMRect(20, 20, 680, 380),
+    });
+    const resolver = new TargetResolver();
+
+    expect(resolver.resolve(document.querySelector("#bar"))).toBe(chart);
+  });
 });

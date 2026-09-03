@@ -1,3 +1,4 @@
+import { resolveChartRoot } from "./chart";
 import { CELL_SELECTOR } from "./table-context";
 import { normalizedText } from "./rect";
 
@@ -35,6 +36,9 @@ export class TargetResolver {
 
   resolve(origin: EventTarget | null): HTMLElement | null {
     if (!(origin instanceof Element)) return null;
+
+    const chart = resolveChartRoot(origin);
+    if (chart) return chart;
 
     const cell = origin.closest<HTMLElement>(CELL_SELECTOR);
     if (cell) return cell;

@@ -227,6 +227,19 @@ export class Televizer {
     ) {
       return;
     }
+    if (
+      this.currentTarget instanceof HTMLElement &&
+      this.overlay.updateChartPointer(
+        event.clientX,
+        event.clientY,
+        this.currentTarget,
+      )
+    ) {
+      this.pointerPosition = { x: event.clientX, y: event.clientY };
+      this.intent.hold();
+      this.overlay.hideIntent();
+      return;
+    }
     if (this.overlay.ownsEvent(event)) {
       if (this.currentTarget && this.state.scope !== "element") {
         this.intent.hold();
@@ -495,6 +508,7 @@ export class Televizer {
           this.currentTarget,
           this.state.scope,
           this.state.comparisonDirection,
+          this.pointerPosition,
         );
     if (
       (model.kind === "element" || model.kind === "quote") &&

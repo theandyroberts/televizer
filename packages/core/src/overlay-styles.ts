@@ -1,6 +1,7 @@
 export const overlayStyles = `
   :host {
     all: initial;
+    display: contents !important;
     --tv-surface: #f5f1e8;
     --tv-surface-raised: #fbf8f1;
     --tv-ink: #202326;
@@ -17,12 +18,12 @@ export const overlayStyles = `
     position: fixed;
     inset: 0;
     z-index: 2147483647;
-    pointer-events: none;
+    pointer-events: none !important;
     font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     color: var(--tv-ink);
   }
   * { box-sizing: border-box; }
-  .tv-stage { position: fixed; inset: 0; pointer-events: none; }
+  .tv-stage { position: fixed; inset: 0; pointer-events: none !important; }
   .tv-dim {
     position: absolute;
     inset: 0;
@@ -104,6 +105,11 @@ export const overlayStyles = `
   .tv-panel[data-kind="media"] {
     width: min(1100px, calc(100vw - (2 * var(--tv-safe-x))));
     padding: clamp(18px, 3vh, 34px);
+  }
+  .tv-panel[data-kind="chart"] {
+    width: min(1500px, calc(100vw - (2 * var(--tv-safe-x))));
+    padding: clamp(18px, 3vh, 34px);
+    pointer-events: none !important;
   }
   .tv-panel[data-kind="quote"] { width: min(980px, calc(100vw - (2 * var(--tv-safe-x)))); }
   .tv-kicker {
@@ -215,6 +221,34 @@ export const overlayStyles = `
     font-size: clamp(12px, 1.6vh, 16px);
     font-weight: 520;
     line-height: 1.45;
+  }
+  .tv-chart-frame {
+    position: relative;
+    width: 100%;
+    height: min(72vh, 800px);
+    overflow: hidden;
+    border: 1px solid var(--tv-rule);
+    border-radius: 12px;
+    background: #fff;
+  }
+  .tv-chart-main,
+  .tv-chart-lens-surface {
+    position: absolute;
+    transform-origin: 0 0;
+  }
+  .tv-chart-main > *,
+  .tv-chart-lens-surface > * {
+    width: 100% !important;
+    height: 100% !important;
+  }
+  .tv-chart-lens {
+    position: absolute;
+    overflow: hidden;
+    border: 3px solid var(--tv-cyan);
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 18px 54px rgba(0,0,0,.34), 0 0 0 4px rgba(2,11,14,.72);
+    pointer-events: none;
   }
   .tv-collection-heading {
     display: grid;
@@ -473,6 +507,7 @@ export const overlayStyles = `
     .tv-kicker { margin-bottom: 14px; }
     .tv-collection-heading { margin-bottom: 16px; padding-bottom: 16px; }
     .tv-items[data-orientation="horizontal"] .tv-item { min-height: 142px; }
+    .tv-chart-frame { height: min(70vh, 430px); }
   }
   @media (max-width: 760px) {
     :host { --tv-safe-x: 18px; --tv-safe-y: 18px; }

@@ -39,7 +39,7 @@
   ordinary element acquisition, click/scroll dismissal, and image zoom.
 - Confirmed no clipping or safe-area violation at 1180 × 640 for element,
   row, column, ordinal, and media states.
-- Confirmed 57 automated tests, all workspace typechecks, and all production
+- Confirmed 63 automated tests, all workspace typechecks, and all production
   builds pass.
 - Replayed the exact selected sentence at the Safari CSS viewport and at
   1180 × 640. Both states preserve the complete governed quote, remain inside
@@ -95,6 +95,54 @@
    removed the final selected word despite ample plate width. The measure now
    belongs to the display-size quote text and CSS clamping has been removed.
    The post-fix comparison shows the complete sentence in two balanced lines.
+7. The initial chart implementation fixed the P1 text-dump failure by promoting
+   the complete chart, but the first capture showed a stationary lens that did
+   not preserve the site's hover tooltip. Pointer movement inside the broadcast
+   chart is now mapped back to the source renderer, then the complete chart and
+   1.85× lens are refreshed from the live tooltip state.
+
+## Chart zoom QA
+
+- Product references:
+  `/Users/andyroberts/Downloads/Screenshot 2026-09-03 at 2.56.38 PM.png`
+  (Vellum HTML bar chart, 2106 × 1506),
+  `/Users/andyroberts/Downloads/Screenshot 2026-09-03 at 3.07.27 PM.png`
+  (Artificial Analysis Recharts chart, 2580 × 1464), and the two reported
+  text-dump failures supplied with this task.
+- Local interactive source: a real Chart.js canvas chart marked with
+  `data-televizer-type="chart"` at `http://127.0.0.1:4173/`.
+- First implementation capture: `design-qa-chart-zoom-first.png`.
+- Final capture: `design-qa-chart-zoom-final.png` (1265 × 712 pixels from a
+  1280 × 720 in-app-browser viewport).
+- Combined reference/final input: `design-qa-chart-zoom-comparison.png`; the
+  Artificial Analysis reference was normalized to 1265 × 712 and placed next
+  to the final capture for direct inspection.
+- Interaction state: Televizer on; complete chart open; pointer moved from the
+  source into the enlarged chart; live `OpenCode / Score: 60` tooltip present
+  inside the moving magnifier.
+- Responsive checks: 900 × 700 and 600 × 700. The whole chart, lens, utility
+  labels, and cream broadcast plate remain inside the viewport with no clipped
+  panel edge or horizontal overflow.
+- Detection coverage includes explicit chart markup, useful-size canvas,
+  Recharts promotion to its single-chart card, and repeated flex-row HTML bar
+  charts. Unit coverage also verifies pointer relay and lens movement.
+
+## Required fidelity surfaces — chart zoom
+
+- Fonts and typography: source chart labels and tooltip typography are copied
+  from the live chart rather than restyled as a Televizer text block; the
+  broadcast kicker remains in the editorial theme.
+- Spacing and layout rhythm: the full plot retains its native aspect and is
+  centered inside the safe area; the lens remains bounded by the plot frame.
+- Colors and visual tokens: source series colors and tooltip colors remain
+  exact; Televizer contributes only the ivory stage and cyan focus border.
+- Image quality and assets: canvas pixels are copied at native backing-store
+  resolution, while SVG and HTML charts retain their live computed styles.
+- Copy and content: axes, labels, series, legends, and the active tooltip stay
+  intact instead of being flattened into concatenated text.
+- Behavior and accessibility: chart figures receive an explicit chart-zoom
+  status label; moving over the enlarged chart updates both focus and tooltip
+  without replacing the active chart target.
 
 ## Required fidelity surfaces — quote regression
 
@@ -123,5 +171,7 @@
 - [x] Add and test quote-specific rendering and excerpt governance.
 - [x] Preserve vertical-column density in ordinal, gap, and percent views.
 - [x] Preserve complete governed quote copy across Safari and narrow layouts.
+- [x] Promote complete HTML, SVG, and canvas charts instead of text fragments.
+- [x] Magnify the pointer neighborhood and preserve live chart tooltips.
 
 final result: passed

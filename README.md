@@ -15,7 +15,7 @@ and it lifts that content into a television-readable layer without changing the
 source page or rearranging its information.
 
 This repository contains Televizer Core and a Vite playground that exercises
-element, table, comparison, quote, media zoom, hover-intent, and dismissal
+element, table, comparison, quote, chart zoom, media zoom, hover-intent, and dismissal
 behavior.
 
 It also contains a Manifest V3 Chrome extension that makes the same engine
@@ -90,6 +90,9 @@ surface.
   preferring a natural sentence or clause break and ending with a real
   ellipsis.
 - Images, native video, and embedded frames open in Televizer's media stage.
+- Charts open as a complete visual rather than a text dump. Keep gesturing over
+  the enlarged chart to move a magnifier across the copy; HTML, SVG, and
+  canvas tooltips present at the pointer are enlarged with that neighborhood.
 - Moving to a new ordinary target returns to element mode, so row and column
   scope cannot accidentally leak into the next presentation.
 
@@ -115,6 +118,31 @@ Iframes are reproduced from their `src` or `srcdoc` without inspecting their
 contents. A generic cross-origin player may therefore restart when zoomed;
 provider-specific adapters are the right path when exact YouTube, Vimeo, or
 other third-party playback continuity is required.
+
+### Chart zoom
+
+Core recognizes common canvas, Recharts, Highcharts, Plotly, ECharts, and
+structured HTML bar-chart patterns. It promotes the renderer to the nearest
+single-chart container so the title, legend, axes, marks, labels, and tooltip
+stay together. The presentation fits the complete chart inside the broadcast
+safe area and adds a moving 1.85× magnifier around the source pointer.
+
+For application-owned charts, mark the complete chart container explicitly so
+the intended boundary is unambiguous:
+
+```html
+<figure
+  data-televizer-type="chart"
+  data-televizer-label="DeepSWE benchmark score"
+>
+  <!-- Existing canvas, SVG, or HTML chart -->
+</figure>
+```
+
+Televizer snapshots the chart after each pointer gesture, throttled to
+keep movement responsive. This allows a website's normal hover behavior to
+produce its tooltip first, then includes that tooltip in both the whole-chart
+view and magnifier without taking over the chart's own interaction model.
 
 ## Add Televizer to a page
 

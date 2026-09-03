@@ -527,6 +527,74 @@ describe("Televizer viewport lifecycle", () => {
     ).toBe("none");
   });
 
+  it("renders a whole chart with a pointer magnifier", () => {
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      `<figure id="chart" data-televizer-type="chart" data-televizer-label="Agent performance">
+        <figcaption>Benchmark scores</figcaption><div><strong>64</strong></div>
+      </figure>`,
+    );
+    televizer = new Televizer({ document }).mount();
+    televizer.focus(document.querySelector<HTMLElement>("#chart")!);
+    const shadow = document.querySelector("televizer-overlay")!.shadowRoot!;
+
+    expect(shadow.querySelector<HTMLElement>(".tv-panel")!.dataset.kind).toBe(
+      "chart",
+    );
+    expect(
+      shadow.querySelector<HTMLElement>(".tv-chart-main")!.textContent,
+    ).toContain("Benchmark scores");
+    expect(shadow.querySelector(".tv-chart-lens")).not.toBeNull();
+    expect(
+      shadow.querySelector<HTMLElement>(".tv-scope")!.textContent,
+    ).toBe("chart · zoom");
+  });
+
+  it("moves the chart lens and relays hover to the source chart", () => {
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      `<figure id="chart" data-televizer-type="chart" data-televizer-label="Agent performance">
+        <div id="plot">64</div>
+      </figure>`,
+    );
+    const chart = document.querySelector<HTMLElement>("#chart")!;
+    Object.defineProperty(chart, "getBoundingClientRect", {
+      configurable: true,
+      value: () => new DOMRect(100, 100, 400, 200),
+    });
+    let relayedPoint: { x: number; y: number } | null = null;
+    chart.addEventListener("mousemove", (event) => {
+      const mouse = event as MouseEvent;
+      relayedPoint = { x: mouse.clientX, y: mouse.clientY };
+    });
+
+    televizer = new Televizer({ document }).mount();
+    televizer.focus(chart);
+    const shadow = document.querySelector("televizer-overlay")!.shadowRoot!;
+    const frame = shadow.querySelector<HTMLElement>(".tv-chart-frame")!;
+    const lens = shadow.querySelector<HTMLElement>(".tv-chart-lens")!;
+    Object.defineProperties(frame, {
+      clientWidth: { configurable: true, value: 800 },
+      clientHeight: { configurable: true, value: 400 },
+      getBoundingClientRect: {
+        configurable: true,
+        value: () => new DOMRect(200, 150, 800, 400),
+      },
+    });
+
+    frame.dispatchEvent(
+      new MouseEvent("pointermove", {
+        bubbles: true,
+        composed: true,
+        clientX: 600,
+        clientY: 350,
+      }),
+    );
+
+    expect(relayedPoint).toEqual({ x: 300, y: 200 });
+    expect(lens.style.left).toBe("288px");
+  });
+
   it("compares a row cell-by-cell against each column's best", () => {
     document.body.insertAdjacentHTML(
       "beforeend",

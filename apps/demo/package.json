@@ -9,7 +9,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@televizer/core": "0.1.0"
+    "@televizer/core": "0.1.0",
+    "chart.js": "^4.5.1"
   },
   "devDependencies": {
     "typescript": "^7.0.2",

@@ -1,7 +1,9 @@
+import { resolveChartRoot } from "./chart";
 import { parseNumericValue } from "./rank";
 import { normalizedText, unionRects } from "./rect";
 import { resolveTableContext } from "./table-context";
 import type {
+  ChartPresentation,
   CollectionPresentation,
   ElementPresentation,
   MediaPresentation,
@@ -9,6 +11,45 @@ import type {
   RankDirection,
   TelevizerScope,
 } from "./types";
+
+function chartModel(
+  element: HTMLElement,
+  pointer?: { x: number; y: number },
+): ChartPresentation | null {
+  const root = resolveChartRoot(element);
+  if (!root || root !== element) return null;
+  const rect = root.getBoundingClientRect();
+  const labelledBy = root.getAttribute("aria-labelledby");
+  const externalLabel = labelledBy
+    ? root.ownerDocument.getElementById(labelledBy)
+    : null;
+  const heading = root.querySelector("h1,h2,h3,h4,h5,h6");
+  const shortLead = Array.from(root.children).find((child) => {
+    const text = normalizedText(child);
+    return text.length > 0 && text.length <= 90;
+  });
+  const title =
+    root.dataset.televizerLabel ||
+    normalizedText(externalLabel) ||
+    normalizedText(heading) ||
+    normalizedText(shortLead) ||
+    root.getAttribute("aria-label") ||
+    "Chart";
+  const pointerX = pointer?.x ?? rect.left + rect.width / 2;
+  const pointerY = pointer?.y ?? rect.top + rect.height / 2;
+  return {
+    kind: "chart",
+    title,
+    sourceElement: root,
+    pointer: {
+      x: Math.max(0, Math.min(rect.width, pointerX - rect.left)),
+      y: Math.max(0, Math.min(rect.height, pointerY - rect.top)),
+    },
+    orientation: "single",
+    sourceElements: [root],
+    sourceRect: unionRects([root]),
+  };
+}
 
 function mediaModel(element: HTMLElement): MediaPresentation | null {
   const media = element.matches("img,video,iframe")
@@ -181,7 +222,10 @@ export function buildPresentationModel(
   element: HTMLElement,
   scope: TelevizerScope,
   directionOverride?: Exclude<RankDirection, "unknown">,
+  pointer?: { x: number; y: number },
 ): PresentationModel {
+  const chart = chartModel(element, pointer);
+  if (chart) return chart;
   const media = mediaModel(element);
   if (media) return media;
   return scope === "element"

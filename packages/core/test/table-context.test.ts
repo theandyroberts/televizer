@@ -171,6 +171,28 @@ describe("native table context", () => {
 });
 
 describe("media presentation models", () => {
+  it("builds a chart model before treating its image as ordinary media", () => {
+    document.body.innerHTML = `
+      <figure id="chart" data-televizer-type="chart" data-televizer-label="Performance">
+        <img src="/chart.png" alt="Agent scores" />
+      </figure>
+    `;
+    const chart = document.querySelector<HTMLElement>("#chart")!;
+    Object.defineProperty(chart, "getBoundingClientRect", {
+      configurable: true,
+      value: () => new DOMRect(100, 200, 800, 500),
+    });
+
+    expect(
+      buildPresentationModel(chart, "element", undefined, { x: 700, y: 450 }),
+    ).toMatchObject({
+      kind: "chart",
+      title: "Performance",
+      sourceElement: chart,
+      pointer: { x: 600, y: 250 },
+    });
+  });
+
   it("builds a zoomable image model with its caption", () => {
     document.body.innerHTML = `
       <figure data-televizer-label="Gap comparison">

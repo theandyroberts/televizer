@@ -52,6 +52,13 @@ export interface QuotePresentation extends PresentationBase {
   source?: string;
 }
 
+export interface ChartPresentation extends PresentationBase {
+  kind: "chart";
+  title: string;
+  sourceElement: HTMLElement;
+  pointer: { x: number; y: number };
+}
+
 export interface MediaPresentation extends PresentationBase {
   kind: "media";
   mediaType: PresentationMediaType;
@@ -89,6 +96,7 @@ export interface CollectionPresentation extends PresentationBase {
 export type PresentationModel =
   | ElementPresentation
   | QuotePresentation
+  | ChartPresentation
   | MediaPresentation
   | CollectionPresentation;
 
