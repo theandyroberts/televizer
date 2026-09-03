@@ -325,6 +325,24 @@ export const overlayStyles = `
     color: #747b7b;
     font-size: clamp(30px, 5.3vh, 58px);
   }
+  .tv-panel[data-orientation="vertical"][data-transform="rank"] .tv-collection-heading,
+  .tv-panel[data-orientation="vertical"][data-transform="difference"] .tv-collection-heading,
+  .tv-panel[data-orientation="vertical"][data-transform="percent"] .tv-collection-heading {
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(12px, 2vh, 20px);
+  }
+  .tv-panel[data-orientation="vertical"][data-transform="rank"] .tv-collection-title,
+  .tv-panel[data-orientation="vertical"][data-transform="difference"] .tv-collection-title,
+  .tv-panel[data-orientation="vertical"][data-transform="percent"] .tv-collection-title {
+    font-size: clamp(42px, 7.5vh, 76px);
+    line-height: 1.04;
+  }
+  .tv-panel[data-orientation="vertical"] .tv-item[data-rank] .tv-item-value {
+    font-size: clamp(34px, 5vh, 52px);
+  }
+  .tv-panel[data-orientation="vertical"] .tv-item[data-rank="1"] .tv-item-value {
+    font-size: clamp(40px, 5.8vh, 60px);
+  }
   .tv-item[data-difference="best"] .tv-item-value { color: var(--tv-ochre); }
   .tv-item[data-difference="behind"] .tv-item-value { color: var(--tv-ink); }
   .tv-rank-note[data-kind="direction"] {
@@ -336,6 +354,12 @@ export const overlayStyles = `
     font-weight: 520;
     line-height: 1.15;
     white-space: nowrap;
+  }
+  .tv-panel[data-orientation="vertical"] .tv-rank-note[data-kind="direction"] {
+    border-top: 1px solid var(--tv-rule-soft);
+    border-left: 0;
+    padding: clamp(12px, 2vh, 20px) 0 0;
+    text-align: right;
   }
   .tv-rank-note[data-kind="warning"] {
     margin-top: 18px;

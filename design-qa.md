@@ -47,6 +47,10 @@
 ## Focused-state evidence
 
 - `design-qa-editorial-column-short.png`: vertical collection at 1180 × 640.
+- `design-qa-editorial-column-ordinal-fixed.png`: repaired ordinal column at
+  1034 × 970.
+- `design-qa-editorial-column-ordinal-comparison.png`: reported failure and
+  repaired state in one comparison input.
 - `design-qa-editorial-rank-short.png`: ordinal row at 1180 × 640.
 - `design-qa-editorial-element-short.png`: single metric at 1180 × 640.
 - `design-qa-editorial-media-short.png`: image zoom at 1180 × 640.
@@ -65,6 +69,12 @@
    safe area. Placement now measures the rendered panel before clamping it.
 4. Final comparison found only expected 5% safe-area and page-scroll
    differences. No actionable P0, P1, or P2 differences remain.
+5. A deployed 1034 × 970 capture exposed a P1 vertical ordinal regression:
+   the direction label shared the title's grid row, forcing `MMLU score` into
+   four fragments and leaving only two ranks visible. Vertical transformed
+   collections now stack the direction beneath a width-preserving title and
+   use column-specific rank sizes. The post-fix comparison shows a single-line
+   title and all five ranks inside the safe area.
 
 ## Checklist
 
@@ -76,5 +86,6 @@
 - [x] Keep every tested state inside the broadcast safe area.
 - [x] Tokenize the theme for future visual options.
 - [x] Add and test quote-specific rendering and excerpt governance.
+- [x] Preserve vertical-column density in ordinal, gap, and percent views.
 
 final result: passed
