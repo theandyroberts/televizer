@@ -1,61 +1,80 @@
-# Row Gap Design QA
+# Editorial Broadcast Theme Design QA
 
-**Source visual truth**
+## Source visual truth
 
-- Path: `/Users/andyroberts/Desktop/Gap_Row_Complete.png`
-- Pixels: 1040 × 500
-- Target state: Televizer on; GPT-5 row selected; row scope; absolute gap (`-`) transform; transient command toast settled.
+- Reference: `/var/folders/nr/325_kfl97h1fqbj3vx67jw0r0000gp/T/codex-clipboard-f3c12cb7-46e9-4a8e-a367-6ccd9b563f36.png`
+- Reference pixels: 1672 × 941
+- Target state: Televizer on; Fastly row; absolute gap transform; lower is
+  better.
+- Defining characteristics: warm ivory plate, charcoal display type, deep teal
+  utility labels, ochre baselines, flat rules, no nested cards, and cyan source
+  provenance.
 
-**Rendered implementation**
+## Rendered implementation
 
-- URL: `http://127.0.0.1:4173/`
-- Screenshot: `/tmp/televizer-row-gap-prototype-1040.jpg`
-- Browser CSS viewport: 1040 × 500 at device pixel ratio 1
-- Screenshot pixels: 1025 × 493. The in-app browser capture omits the 15 px scrollbar strip and a small viewport-edge strip.
-- Focused comparison: `/tmp/televizer-row-gap-comparison.jpg`
-- Normalization: source panel crop 1012 × 281; visible implementation panel crop 1007 × 281 scaled to 1012 × 281 to compensate only for the omitted scrollbar strip.
+- Local URL: `http://127.0.0.1:4173/`
+- Primary capture: `design-qa-editorial-row-gap.png`
+- Side-by-side comparison: `design-qa-editorial-comparison.png`
+- Browser viewport override: 1680 × 909; capture pixels: 1665 × 901 because
+  the in-app browser omits its scrollbar strip and outer edge.
+- Stress-test viewport: 1180 × 640.
 
-**Interaction verification**
+## Interaction and state verification
 
-- Started Televizer from the demo control.
-- Paused over the GPT-5 row for the acquisition delay.
-- Pressed `-` and confirmed row-gap mode, the source-row highlight, four per-column baselines, signed gaps, and best-value `--` states.
-- Checked browser warnings and errors: none.
+- Activated Televizer with `Option/Alt + T`.
+- Hovered the Fastly row, pressed `-`, then `L`.
+- Confirmed `+11ms`, `+5ms`, `+12ms`, and `+11ms`, with a `Lower is better.`
+  direction label and all four best-value baselines.
+- Confirmed direct column-header acquisition, row-header ordinal acquisition,
+  ordinary element acquisition, click/scroll dismissal, and image zoom.
+- Confirmed no clipping or safe-area violation at 1180 × 640 for element,
+  row, column, ordinal, and media states.
+- Confirmed 56 automated tests, all workspace typechecks, and all production
+  builds pass.
 
-**Full-view comparison evidence**
+## Full-view comparison evidence
 
-- The source and implementation use the same desktop theme, table data, row-gap state, panel hierarchy, and four-card structure.
-- The panel's vertical page position differs because placement follows the source row's current viewport position. This is expected behavior, not component drift.
-- The final panel measures 1012 × 281 CSS px, matching the target panel dimensions.
+- The selected reference and final implementation were placed together in
+  `design-qa-editorial-comparison.png` and inspected as one comparison input.
+- The implementation matches the reference hierarchy, palette, flat ruled
+  construction, large-title weight, comparison label/value grouping, rounded
+  outer plate, and visible source provenance.
+- The implementation keeps a deliberate 5% horizontal safe area from the
+  research brief, so its plate is slightly narrower than the concept image.
+- Page content differs only because the reference and implementation captured
+  the source row at different scroll positions.
 
-**Focused-region comparison evidence**
+## Focused-state evidence
 
-- Each card measures 234 px wide with a 10 px inter-card gap, matching the source.
-- The metric label and yellow `vs <best>` baseline share one header line in all four cards.
-- GPT-5 displays `--`, `−2.7`, `−2.4`, and `--`, with the two best cards receiving the yellow comparison treatment.
-- Typography, padding, radii, borders, gradient, value alignment, and color hierarchy visually match the supplied reference. No image or icon assets appear in this component.
+- `design-qa-editorial-column-short.png`: vertical collection at 1180 × 640.
+- `design-qa-editorial-rank-short.png`: ordinal row at 1180 × 640.
+- `design-qa-editorial-element-short.png`: single metric at 1180 × 640.
+- `design-qa-editorial-media-short.png`: image zoom at 1180 × 640.
+- Quote rendering and the 24-word governor are covered by focused unit and
+  lifecycle tests; the in-app browser did not preserve a synthetic selection
+  swipe during visual capture, so no browser-mutated selection was used as QA
+  evidence.
 
-**Findings**
+## Comparison history
 
-- No actionable P0, P1, or P2 differences remain.
+1. The first implementation used correct colors and structure but rendered too
+   compactly and showed an unintended vertical scrollbar in horizontal rows.
+2. Increased frame-height display sizing, item depth, and label/value scale;
+   removed vertical overflow from horizontal rows.
+3. The larger real panel exposed a placement estimate that crossed the bottom
+   safe area. Placement now measures the rendered panel before clamping it.
+4. Final comparison found only expected 5% safe-area and page-scroll
+   differences. No actionable P0, P1, or P2 differences remain.
 
-**Comparison history**
+## Checklist
 
-1. Initial browser measurement at 1040 × 500 found the horizontal panel at 984 px wide, making each card narrower than the 234 px target. The per-card baseline was also a small stacked second line before implementation.
-2. Fixed the header layout, enlarged the yellow baseline, widened the horizontal panel to 1012 px, and aligned its narrow-viewport side position with the reference.
-3. Post-fix browser evidence measures a 1012 × 281 panel and four 234 px cards; the normalized focused comparison shows no remaining P0/P1/P2 mismatch.
-
-**Implementation checklist**
-
-- [x] Show `vs <best>` in every row-gap metric header.
-- [x] Keep the row's signed gap or `--` in the card body.
-- [x] Preserve best-card yellow emphasis.
-- [x] Match the reference panel and card widths at 1040 × 500.
-- [x] Cover a zero-valued comparison baseline.
-- [x] Verify the real hover and keyboard interaction.
-
-**Follow-up polish**
-
-- P3: Font rasterization varies slightly between the supplied screenshot and the browser capture; no token or size change is warranted.
+- [x] Match the selected warm editorial visual system.
+- [x] Keep source provenance cyan and visually separate.
+- [x] Remove nested collection cards.
+- [x] Put comparison direction in the heading hierarchy.
+- [x] Use frame-height typography and conservative tracking.
+- [x] Keep every tested state inside the broadcast safe area.
+- [x] Tokenize the theme for future visual options.
+- [x] Add and test quote-specific rendering and excerpt governance.
 
 final result: passed

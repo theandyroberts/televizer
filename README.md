@@ -43,6 +43,12 @@ Click ordinary page space, scroll, resize, or move the pointer out of the page
 to dismiss the current presentation. Press `Option/Alt + T` again to turn
 Televizer off.
 
+The lifted layer uses Televizer's warm editorial broadcast theme rather than
+borrowing colors or typography from the page underneath it. Its semantic
+design tokens keep presentation structure separate from appearance so future
+themes can change palette, type, rules, radius, and depth without changing the
+table or media logic.
+
 ## Controls
 
 | Key | Action |
@@ -79,7 +85,10 @@ surface.
   Dismiss first only when the peer source is hidden beneath the lifted panel.
 - Headings and paragraphs are inert unless explicitly marked as targets.
 - Selecting text with the pointer starts quote intent only when the selection
-  swipe is released; leave the pointer still to present the quote.
+  swipe is released; leave the pointer still to present the quote. Short
+  selections remain verbatim. Longer selections are capped at 24 words,
+  preferring a natural sentence or clause break and ending with a real
+  ellipsis.
 - Images, native video, and embedded frames open in Televizer's media stage.
 - Moving to a new ordinary target returns to element mode, so row and column
   scope cannot accidentally leak into the next presentation.
@@ -198,6 +207,9 @@ A column can override the table direction with its own
 `data-televizer-cell` hints. See
 [CDNstats integration](docs/cdnstats-integration.md) for a React migration
 example.
+
+The broadcast-layer design rules and theme-token contract are documented in
+[Broadcast design](docs/broadcast-design.md).
 
 ## Configuration
 
