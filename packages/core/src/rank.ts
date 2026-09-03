@@ -99,10 +99,7 @@ export function compareItemsToBest(
 
   return items.map((item) => {
     if (item.numericValue == null) return { ...item };
-    const differenceFromBest =
-      direction === "higher"
-        ? item.numericValue - best
-        : best - item.numericValue;
+    const differenceFromBest = item.numericValue - best;
     return {
       ...item,
       differenceFromBest,

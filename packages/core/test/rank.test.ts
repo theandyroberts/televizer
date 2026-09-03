@@ -70,13 +70,17 @@ describe("compareItemsToBest", () => {
     ]);
   });
 
-  it("reverses comparison for lower-is-better values", () => {
+  it("uses a positive offset above the best lower-is-better value", () => {
     const compared = compareItemsToBest(
       [item("A", "38 ms"), item("B", "18 ms")],
       "lower",
     );
 
-    expect(compared.map((entry) => entry.differenceFromBest)).toEqual([-20, 0]);
+    expect(compared.map((entry) => entry.differenceFromBest)).toEqual([20, 0]);
+    expect(compared.map((entry) => entry.percentDifferenceFromBest)).toEqual([
+      111.11111111111111,
+      0,
+    ]);
   });
 
   it("declines unknown direction and a zero percentage baseline", () => {

@@ -610,23 +610,28 @@ function presentationValue(
   if (transform === "percent") {
     return item.percentDifferenceFromBest == null
       ? "—"
-      : formatNumber(item.percentDifferenceFromBest, "%", "");
+      : formatNumber(item.percentDifferenceFromBest, "%", "", true);
   }
   if (transform === "difference") {
     if (item.differenceFromBest == null) return "—";
     if (item.differenceFromBest === 0) return "--";
     const { prefix, suffix } = numericParts(item.value);
-    return formatNumber(item.differenceFromBest, suffix, prefix);
+    return formatNumber(item.differenceFromBest, suffix, prefix, true);
   }
   return item.value;
 }
 
-function formatNumber(value: number, suffix: string, prefix: string): string {
+function formatNumber(
+  value: number,
+  suffix: string,
+  prefix: string,
+  showPositiveSign = false,
+): string {
   const compact = compactBytes(Math.abs(value), suffix);
   const absolute = compact.value;
   const decimals = Number.isInteger(absolute) ? 0 : absolute < 10 ? 1 : 0;
   const number = absolute.toFixed(decimals);
-  const sign = value < 0 ? "−" : "";
+  const sign = value < 0 ? "−" : showPositiveSign && value > 0 ? "+" : "";
   const renderedSuffix = compact.suffix;
   const suffixSeparator = renderedSuffix && !isTightUnit(renderedSuffix) ? " " : "";
   return `${sign}${prefix}${number}${suffixSeparator}${renderedSuffix}`;

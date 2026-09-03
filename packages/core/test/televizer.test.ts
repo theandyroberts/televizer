@@ -416,7 +416,7 @@ describe("Televizer viewport lifecycle", () => {
     televizer.setTransform("difference");
     expect(
       Array.from(shadow.querySelectorAll(".tv-item-value"), (node) => node.textContent),
-    ).toEqual(["−20ms", "--"]);
+    ).toEqual(["+20ms", "--"]);
     expect(
       shadow.querySelector<HTMLElement>(".tv-comparison-baseline")!.textContent,
     ).toBe("vs 18ms");
@@ -431,7 +431,7 @@ describe("Televizer viewport lifecycle", () => {
     expect(televizer.getState().transform).toBe("percent");
     expect(
       Array.from(shadow.querySelectorAll(".tv-item-value"), (node) => node.textContent),
-    ).toEqual(["−111%", "0%"]);
+    ).toEqual(["+111%", "0%"]);
 
     televizer.setTransform("values");
     document.dispatchEvent(
@@ -445,7 +445,36 @@ describe("Televizer viewport lifecycle", () => {
     expect(televizer.getState().transform).toBe("percent");
     expect(
       Array.from(shadow.querySelectorAll(".tv-item-value"), (node) => node.textContent),
-    ).toEqual(["−111%", "0%"]);
+    ).toEqual(["+111%", "0%"]);
+  });
+
+  it("shows positive row gaps above lower-is-better column winners", () => {
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      `<table>
+        <thead><tr><th>CDN</th><th>Virginia TTFB</th><th>Oregon TTFB</th><th>Frankfurt TTFB</th><th>Sydney TTFB</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Adobe</th><td>38 ms</td><td>74 ms</td><td>112 ms</td><td>184 ms</td></tr>
+          <tr><th scope="row">Stripo</th><td>67 ms</td><td>48 ms</td><td>91 ms</td><td>152 ms</td></tr>
+          <tr><th scope="row">Cloudflare</th><td>18 ms</td><td>26 ms</td><td>34 ms</td><td>61 ms</td></tr>
+          <tr><th id="fastly" scope="row">Fastly</th><td>29 ms</td><td>31 ms</td><td>46 ms</td><td>72 ms</td></tr>
+        </tbody>
+      </table>`,
+    );
+    televizer = new Televizer({ document }).mount();
+    televizer.focus(document.querySelector<HTMLElement>("#fastly")!);
+    televizer.setTransform("difference");
+    document.dispatchEvent(
+      new KeyboardEvent("keydown", { bubbles: true, key: "L", code: "KeyL" }),
+    );
+    const shadow = document.querySelector("televizer-overlay")!.shadowRoot!;
+
+    expect(
+      Array.from(shadow.querySelectorAll(".tv-item-baseline"), (node) => node.textContent),
+    ).toEqual(["vs 18ms", "vs 26ms", "vs 34ms", "vs 61ms"]);
+    expect(
+      Array.from(shadow.querySelectorAll(".tv-item-value"), (node) => node.textContent),
+    ).toEqual(["+11ms", "+5ms", "+12ms", "+11ms"]);
   });
 
   it("compacts byte quantities in the gap presentation", () => {

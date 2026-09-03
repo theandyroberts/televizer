@@ -89,8 +89,10 @@ starts with higher-is-better. Press `L` while a row or column is Televized to
 switch it to lower-is-better; press `L` again to return to higher-is-better.
 Ordinal, gap, and percent views state only the active direction in the small
 note below their values; key instructions remain in the existing help
-surfaces. The best item displays `--` and worse items display a negative
-disadvantage. A percentage comparison with a zero baseline remains undefined.
+surfaces. The best item displays `--` in gap view. Worse higher-is-better values
+show a negative offset below the best; worse lower-is-better values show a
+positive offset above the best. Percentage comparisons use the same sign
+convention, and a percentage comparison with a zero baseline remains undefined.
 
 ### Media zoom
 
