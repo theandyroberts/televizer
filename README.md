@@ -61,6 +61,7 @@ table or media logic.
 | `5` or `%` | Toggle percentage disadvantage from the best value |
 | `-` | Toggle absolute disadvantage from the best value |
 | `L` or `l` | Toggle lower-is-better for the current row or column |
+| `Z` or `z` | Force the current visualization into chart zoom |
 | `H` | Toggle a tiny on-air command footnote below the presentation |
 | `?` | Open or close the compact help panel |
 
@@ -90,9 +91,11 @@ surface.
   preferring a natural sentence or clause break and ending with a real
   ellipsis.
 - Images, native video, and embedded frames open in Televizer's media stage.
-- Charts open as a complete visual rather than a text dump. Keep gesturing over
-  the enlarged chart to move a magnifier across the copy; HTML, SVG, and
-  canvas tooltips present at the pointer are enlarged with that neighborhood.
+- Charts open as a complete visual rather than a text dump. Press `Z` to force
+  chart zoom if an unfamiliar visualization is initially presented as text.
+  Keep gesturing over the enlarged chart to move a magnifier across the copy;
+  HTML, SVG, and canvas tooltips present at the pointer are enlarged with that
+  neighborhood.
 - Moving to a new ordinary target returns to element mode, so row and column
   scope cannot accidentally leak into the next presentation.
 
@@ -121,7 +124,7 @@ other third-party playback continuity is required.
 
 ### Chart zoom
 
-Core recognizes common canvas, Recharts, Highcharts, Plotly, ECharts, and
+Core recognizes common canvas, Vega, Recharts, Highcharts, Plotly, ECharts, and
 structured HTML bar-chart patterns. It promotes the renderer to the nearest
 single-chart container so the title, legend, axes, marks, labels, and tooltip
 stay together. The presentation fits the complete chart inside the broadcast
@@ -143,6 +146,9 @@ Televizer snapshots the chart after each pointer gesture, throttled to
 keep movement responsive. This allows a website's normal hover behavior to
 produce its tooltip first, then includes that tooltip in both the whole-chart
 view and magnifier without taking over the chart's own interaction model.
+If a site's chart has unfamiliar markup and Televizer first lifts its text,
+press `Z` while it is Televized. Televizer finds the nearest useful SVG,
+canvas, or visualization container and immediately reopens it in chart zoom.
 
 ## Add Televizer to a page
 

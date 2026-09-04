@@ -12,12 +12,11 @@ import type {
   TelevizerScope,
 } from "./types";
 
-function chartModel(
+export function buildChartPresentation(
   element: HTMLElement,
   pointer?: { x: number; y: number },
-): ChartPresentation | null {
-  const root = resolveChartRoot(element);
-  if (!root || root !== element) return null;
+): ChartPresentation {
+  const root = element;
   const rect = root.getBoundingClientRect();
   const labelledBy = root.getAttribute("aria-labelledby");
   const externalLabel = labelledBy
@@ -49,6 +48,15 @@ function chartModel(
     sourceElements: [root],
     sourceRect: unionRects([root]),
   };
+}
+
+function chartModel(
+  element: HTMLElement,
+  pointer?: { x: number; y: number },
+): ChartPresentation | null {
+  const root = resolveChartRoot(element);
+  if (!root || root !== element) return null;
+  return buildChartPresentation(root, pointer);
 }
 
 function mediaModel(element: HTMLElement): MediaPresentation | null {

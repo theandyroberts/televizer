@@ -1,6 +1,10 @@
 import { HoverIntent } from "./hover-intent";
 import { PresentationOverlay } from "./overlay";
-import { buildPresentationModel } from "./presentation-model";
+import { resolveForcedChartRoot } from "./chart";
+import {
+  buildChartPresentation,
+  buildPresentationModel,
+} from "./presentation-model";
 import { governQuote } from "./quote";
 import { inferScopeFromTableTarget } from "./table-context";
 import { TargetResolver } from "./target-resolver";
@@ -419,6 +423,7 @@ export class Televizer {
       key === "%" ||
       key === "-" ||
       key === "l" ||
+      key === "z" ||
       key === "h" ||
       key === "?"
     ) {
@@ -437,6 +442,8 @@ export class Televizer {
       );
     } else if (key === "l") {
       this.toggleComparisonDirection();
+    } else if (key === "z") {
+      this.forceChartZoom();
     } else if (key === "h") {
       if (!this.currentTarget) return;
       this.helperVisible = !this.helperVisible;
@@ -448,6 +455,39 @@ export class Televizer {
       else this.overlay.hideHelp();
     }
   };
+
+  private forceChartZoom(): void {
+    if (!this.currentTarget || isSelectionTarget(this.currentTarget)) {
+      this.overlay.flash("CHOOSE A CHART");
+      return;
+    }
+    const chart = resolveForcedChartRoot(this.currentTarget);
+    if (!chart) {
+      this.overlay.flash("CHART NOT FOUND");
+      return;
+    }
+    const stateChanged =
+      this.state.scope !== "element" ||
+      this.state.transform !== "values" ||
+      this.state.comparisonDirection !== "higher";
+    this.state = {
+      ...this.state,
+      scope: "element",
+      transform: "values",
+      comparisonDirection: "higher",
+    };
+    this.helperVisible = false;
+    this.overlay.setHelperVisible(false);
+    this.currentTarget = chart;
+    this.overlay.show(
+      buildChartPresentation(chart, this.pointerPosition),
+      this.state,
+    );
+    const now = this.document.defaultView?.performance.now() ?? 0;
+    this.pointerSuppressedUntil = now + 420;
+    this.overlay.flash("CHART ZOOM");
+    if (stateChanged) this.emitState();
+  }
 
   private present(target: PresentationTarget): void {
     if (!this.state.active) return;

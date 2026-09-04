@@ -318,6 +318,7 @@ describe("Televizer viewport lifecycle", () => {
     expect(help.dataset.visible).toBe("true");
     expect(help.textContent).toContain("Percent from best");
     expect(help.textContent).toContain("On-air hints");
+    expect(help.textContent).toContain("Force chart zoom");
     expect(help.textContent).toContain("Select text");
 
     document.dispatchEvent(
@@ -548,6 +549,43 @@ describe("Televizer viewport lifecycle", () => {
     expect(
       shadow.querySelector<HTMLElement>(".tv-scope")!.textContent,
     ).toBe("chart · zoom");
+  });
+
+  it("switches a misclassified visualization to chart zoom with Z", () => {
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      `<div id="visualization" data-televizer-target data-televizer-label="Terminal-Bench Science 0.1">
+        <svg id="generic-plot"><g><text>$0 $10 55% 60% Accuracy API Cost</text></g></svg>
+      </div>`,
+    );
+    const visualization = document.querySelector<HTMLElement>("#visualization")!;
+    const plot = document.querySelector<SVGElement>("#generic-plot")!;
+    [visualization, plot].forEach((element) => {
+      Object.defineProperty(element, "getBoundingClientRect", {
+        configurable: true,
+        value: () => new DOMRect(100, 100, 640, 360),
+      });
+    });
+    televizer = new Televizer({ document }).mount();
+    televizer.focus(visualization);
+    const shadow = document.querySelector("televizer-overlay")!.shadowRoot!;
+    expect(shadow.querySelector<HTMLElement>(".tv-panel")!.dataset.kind).toBe(
+      "element",
+    );
+
+    document.dispatchEvent(
+      new KeyboardEvent("keydown", { bubbles: true, key: "z", code: "KeyZ" }),
+    );
+
+    expect(shadow.querySelector<HTMLElement>(".tv-panel")!.dataset.kind).toBe(
+      "chart",
+    );
+    expect(
+      shadow.querySelector<HTMLElement>(".tv-scope")!.textContent,
+    ).toBe("chart · zoom");
+    expect(
+      shadow.querySelector<HTMLElement>(".tv-chart-main")!.textContent,
+    ).toContain("Accuracy API Cost");
   });
 
   it("moves the chart lens and relays hover to the source chart", () => {

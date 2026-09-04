@@ -93,6 +93,28 @@ describe("TargetResolver", () => {
     expect(resolver.resolve(document.querySelector("#bar"))).toBe(card);
   });
 
+  it("recognizes a Vega visualization and keeps its chart title", () => {
+    document.body.innerHTML = `
+      <div id="chart"><h3>Terminal-Bench Science 0.1</h3>
+        <div><div class="vega-embed" role="graphics-document" aria-label="Vega visualization">
+          <svg class="marks" id="plot"><g><text id="score">59.3%</text></g></svg>
+        </div></div>
+      </div>
+    `;
+    const chart = document.querySelector<HTMLElement>("#chart")!;
+    const embed = document.querySelector<HTMLElement>(".vega-embed")!;
+    const plot = document.querySelector<SVGElement>("#plot")!;
+    [chart, embed, plot].forEach((element) => {
+      Object.defineProperty(element, "getBoundingClientRect", {
+        configurable: true,
+        value: () => new DOMRect(20, 20, 680, 380),
+      });
+    });
+    const resolver = new TargetResolver();
+
+    expect(resolver.resolve(document.querySelector("#score"))).toBe(chart);
+  });
+
   it("recognizes a structured HTML bar chart without chart-specific classes", () => {
     document.body.innerHTML = `
       <div id="chart">

@@ -290,6 +290,7 @@ export class PresentationOverlay {
       ["5", "Percent from best"],
       ["−", "Value from best"],
       ["L", "Lower is better"],
+      ["Z", "Force chart zoom"],
       ["H", "On-air hints"],
       ["?", "Help"],
     ];
@@ -321,7 +322,7 @@ export class PresentationOverlay {
   private createHelper(): HTMLElement {
     const helper = node(this.document, "aside", "tv-helper");
     helper.setAttribute("role", "note");
-    helper.textContent = "H hide  ·  E element  ·  R row  ·  C column  ·  1 ranks  ·  L low wins  ·  5 pct  ·  − gap";
+    helper.textContent = "H hide  ·  E element  ·  R row  ·  C column  ·  1 ranks  ·  L low wins  ·  5 pct  ·  − gap  ·  Z chart zoom";
     return helper;
   }
 

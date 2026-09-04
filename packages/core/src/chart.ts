@@ -2,8 +2,11 @@ import { normalizedText } from "./rect";
 
 const EXPLICIT_CHART_SELECTOR =
   '[data-televizer-type="chart"],[data-televizer-chart]';
+const VEGA_CHART_SELECTOR =
+  ".vega-embed,.vega-view,[role='graphics-document'][aria-label*='vega' i]";
 const CHART_RENDERER_SELECTOR = [
   "canvas",
+  "svg.marks",
   "svg.recharts-surface",
   "svg[class*='highcharts' i]",
   "svg[class*='plotly' i]",
@@ -15,6 +18,14 @@ const CHART_RENDERER_SELECTOR = [
 function hasUsefulSize(element: Element): boolean {
   const rect = element.getBoundingClientRect();
   return rect.width >= 240 && rect.height >= 120;
+}
+
+function chartTextLength(element: HTMLElement): number {
+  const clone = element.cloneNode(true) as HTMLElement;
+  clone.querySelectorAll("style,script,noscript,template").forEach((node) => {
+    node.remove();
+  });
+  return normalizedText(clone).length;
 }
 
 function closestRenderer(origin: Element): Element | null {
@@ -46,11 +57,11 @@ function rendererChartRoot(renderer: Element): HTMLElement | null {
     if (current.matches(EXPLICIT_CHART_SELECTOR)) return current;
     if (current.matches("body,main,article,section")) break;
     const rect = current.getBoundingClientRect();
-    const text = normalizedText(current);
+    const textLength = chartTextLength(current);
     if (
       rect.width >= 240 &&
       rect.height >= 120 &&
-      text.length <= 2400 &&
+      textLength <= 2400 &&
       rendererCount(current) === 1
     ) {
       best = current;
@@ -94,7 +105,40 @@ export function resolveChartRoot(origin: Element): HTMLElement | null {
   const explicit = origin.closest(EXPLICIT_CHART_SELECTOR);
   if (explicit instanceof HTMLElement) return explicit;
   if (explicit) return explicit.parentElement;
+  const vega = origin.closest(VEGA_CHART_SELECTOR);
+  if (vega instanceof HTMLElement && hasUsefulSize(vega)) {
+    const renderer = vega.querySelector("svg.marks,canvas,svg");
+    return renderer ? rendererChartRoot(renderer) : vega;
+  }
   const renderer = closestRenderer(origin);
   if (renderer) return rendererChartRoot(renderer);
   return htmlBarChartRoot(origin);
+}
+
+export function resolveForcedChartRoot(origin: Element): HTMLElement | null {
+  const detected = resolveChartRoot(origin);
+  if (detected) return detected;
+
+  const containingRenderer = origin.closest("canvas,svg,[role='img']");
+  const descendantRenderers = Array.from(
+    origin.querySelectorAll("canvas,svg,[role='img']"),
+  );
+  const renderer = [containingRenderer, ...descendantRenderers].find(
+    (candidate): candidate is Element =>
+      candidate instanceof Element && hasUsefulSize(candidate),
+  );
+  if (renderer) return rendererChartRoot(renderer);
+
+  let current: Element | null = origin;
+  for (let depth = 0; current && depth < 7; depth += 1) {
+    if (
+      current instanceof HTMLElement &&
+      !current.matches("html,body,main,article,section") &&
+      hasUsefulSize(current)
+    ) {
+      return current;
+    }
+    current = current.parentElement;
+  }
+  return null;
 }
