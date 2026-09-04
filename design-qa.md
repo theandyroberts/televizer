@@ -39,7 +39,7 @@
   ordinary element acquisition, click/scroll dismissal, and image zoom.
 - Confirmed no clipping or safe-area violation at 1180 × 640 for element,
   row, column, ordinal, and media states.
-- Confirmed 63 automated tests, all workspace typechecks, and all production
+- Confirmed 65 automated tests, all workspace typechecks, and all production
   builds pass.
 - Replayed the exact selected sentence at the Safari CSS viewport and at
   1180 × 640. Both states preserve the complete governed quote, remain inside
@@ -100,6 +100,12 @@
    not preserve the site's hover tooltip. Pointer movement inside the broadcast
    chart is now mapped back to the source renderer, then the complete chart and
    1.85× lens are refreshed from the live tooltip state.
+8. The chart pointer pass-through change added `display: contents` to the
+   custom-element host. That removed the host stacking context, allowing the
+   demo tables' sticky first column to paint above the broadcast plate. The
+   host is now a normal fixed stacking context again, and the fixed shadow
+   stage receives the same maximum z-index. The matched post-fix comparison
+   shows every sticky header and cell behind the Televizer surface.
 
 ## Chart zoom QA
 
@@ -144,6 +150,41 @@
   status label; moving over the enlarged chart updates both focus and tooltip
   without replacing the active chart target.
 
+## Sticky-column stacking regression
+
+- Source visual truth:
+  `/var/folders/nr/325_kfl97h1fqbj3vx67jw0r0000gp/T/TemporaryItems/NSIRD_screencaptureui_W2K6NL/Screenshot 2026-09-03 at 10.59.00 PM.png`
+  (1289 × 921 pixels, including 42 pixels of browser chrome).
+- Secondary source:
+  `/var/folders/nr/325_kfl97h1fqbj3vx67jw0r0000gp/T/TemporaryItems/NSIRD_screencaptureui_JEFPva/Screenshot 2026-09-03 at 10.59.42 PM.png`
+  (1269 × 887 pixels) confirms the same failure in the latency table.
+- Corrected implementation: `design-qa-stacking-row-fixed.png` (1274 × 869
+  pixels from a 1289 × 879 CSS viewport; the in-app browser omits its
+  15-pixel scrollbar strip and 10-pixel outer edge).
+- Supplementary corrected latency-row capture:
+  `design-qa-stacking-cloudflare-fixed.png` (1265 × 712 pixels).
+- Combined comparison: `design-qa-stacking-row-comparison.png`. The source's
+  42-pixel browser toolbar was removed and its page content normalized to
+  1274 × 869 before being placed beside the corrected implementation.
+- State: Televizer on; GPT-5 row open; source table uses a sticky first column.
+  The original shows the complete sticky column crossing the ivory plate; the
+  corrected view contains all page table content behind the overlay.
+- Focused evidence was not separated because the complete offending column and
+  all four presentation cells are readable in the full matched comparison.
+- Fonts and typography: unchanged from the editorial row presentation; all
+  labels and values remain fully legible after the stacking correction.
+- Spacing and layout rhythm: plate bounds, safe-area inset, grid tracks, rules,
+  radius, and value baseline are unchanged.
+- Colors and visual tokens: the ivory surface and cyan provenance retain their
+  existing tokens; no dark sticky-cell colors bleed onto the surface.
+- Image quality and assets: this state contains no image asset. The comparison
+  is density-normalized and the source outline remains crisp.
+- Copy and content: GPT-5, all four metric labels, and all four values are
+  complete; no content was changed to solve the paint-order defect.
+- Regression coverage asserts that the host remains a stacking context and the
+  fixed stage keeps the maximum overlay z-index. Chart magnifier movement was
+  rechecked after the fix and still tracks the pointer.
+
 ## Required fidelity surfaces — quote regression
 
 - Fonts and typography: the editorial family, weight, display size, line
@@ -173,5 +214,6 @@
 - [x] Preserve complete governed quote copy across Safari and narrow layouts.
 - [x] Promote complete HTML, SVG, and canvas charts instead of text fragments.
 - [x] Magnify the pointer neighborhood and preserve live chart tooltips.
+- [x] Keep sticky headers and columns beneath every Televizer presentation.
 
 final result: passed

@@ -1,7 +1,6 @@
 export const overlayStyles = `
   :host {
     all: initial;
-    display: contents !important;
     --tv-surface: #f5f1e8;
     --tv-surface-raised: #fbf8f1;
     --tv-ink: #202326;
@@ -23,7 +22,12 @@ export const overlayStyles = `
     color: var(--tv-ink);
   }
   * { box-sizing: border-box; }
-  .tv-stage { position: fixed; inset: 0; pointer-events: none !important; }
+  .tv-stage {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483647;
+    pointer-events: none !important;
+  }
   .tv-dim {
     position: absolute;
     inset: 0;
