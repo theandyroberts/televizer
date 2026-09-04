@@ -27,6 +27,19 @@ interface ChartRenderState {
   offsetY: number;
 }
 
+function colorAlpha(color: string): number {
+  if (!color || color === "transparent") return 0;
+  const slashAlpha = color.match(/\/\s*([\d.]+)(%)?\s*\)$/);
+  if (slashAlpha) {
+    const alpha = Number.parseFloat(slashAlpha[1] ?? "0");
+    return slashAlpha[2] ? alpha / 100 : alpha;
+  }
+  const rgbaAlpha = color.match(
+    /^rgba\([^,]+,[^,]+,[^,]+,\s*([\d.]+)\s*\)$/,
+  );
+  return rgbaAlpha ? Number.parseFloat(rgbaAlpha[1] ?? "0") : 1;
+}
+
 function node<K extends keyof HTMLElementTagNameMap>(
   document: Document,
   tag: K,
@@ -384,6 +397,10 @@ export class PresentationOverlay {
     const lens = node(this.document, "div", "tv-chart-lens");
     lens.setAttribute("aria-hidden", "true");
     const lensSurface = node(this.document, "div", "tv-chart-lens-surface");
+    frame.style.setProperty(
+      "--tv-chart-background",
+      this.chartBackground(model.sourceElement),
+    );
     lens.append(lensSurface);
     frame.append(main, lens);
     this.panel.append(frame);
@@ -404,6 +421,21 @@ export class PresentationOverlay {
     };
     this.refreshChartSnapshots();
     this.document.defaultView?.requestAnimationFrame(() => this.layoutChart());
+  }
+
+  private chartBackground(source: HTMLElement): string {
+    const view = this.document.defaultView;
+    if (!view) return "#fff";
+    let current: Element | null = source;
+    let translucentFallback = "";
+    while (current) {
+      const color = view.getComputedStyle(current).backgroundColor;
+      const alpha = colorAlpha(color);
+      if (alpha >= 0.98) return color;
+      if (alpha > 0 && !translucentFallback) translucentFallback = color;
+      current = current.parentElement;
+    }
+    return translucentFallback || "#fff";
   }
 
   private refreshChartSnapshots(): void {

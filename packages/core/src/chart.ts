@@ -101,6 +101,25 @@ function htmlBarChartRoot(origin: Element): HTMLElement | null {
   return best;
 }
 
+function nearbyVegaChartRoot(origin: Element): HTMLElement | null {
+  let current: Element | null = origin;
+  for (let depth = 0; current && depth < 9; depth += 1) {
+    if (current instanceof HTMLElement) {
+      const embeds = Array.from(
+        current.querySelectorAll<HTMLElement>(VEGA_CHART_SELECTOR),
+      ).filter(hasUsefulSize);
+      const embed = embeds.length === 1 ? embeds[0] : null;
+      if (embed) {
+        const renderer = embed.querySelector("svg.marks,canvas,svg");
+        return renderer ? rendererChartRoot(renderer) : embed;
+      }
+    }
+    if (current.matches("body,main,article,section")) break;
+    current = current.parentElement;
+  }
+  return null;
+}
+
 export function resolveChartRoot(origin: Element): HTMLElement | null {
   const explicit = origin.closest(EXPLICIT_CHART_SELECTOR);
   if (explicit instanceof HTMLElement) return explicit;
@@ -110,6 +129,8 @@ export function resolveChartRoot(origin: Element): HTMLElement | null {
     const renderer = vega.querySelector("svg.marks,canvas,svg");
     return renderer ? rendererChartRoot(renderer) : vega;
   }
+  const nearbyVega = nearbyVegaChartRoot(origin);
+  if (nearbyVega) return nearbyVega;
   const renderer = closestRenderer(origin);
   if (renderer) return rendererChartRoot(renderer);
   return htmlBarChartRoot(origin);

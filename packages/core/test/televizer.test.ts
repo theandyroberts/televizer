@@ -4,6 +4,7 @@ import { Televizer } from "../src/televizer";
 let televizer: Televizer | null = null;
 
 beforeEach(() => {
+  document.body.removeAttribute("style");
   document.body.innerHTML = `
     <article id="metric" data-televizer-target data-televizer-label="TTFB" data-televizer-value="38 ms">
       <strong>38 ms</strong>
@@ -549,6 +550,30 @@ describe("Televizer viewport lifecycle", () => {
     expect(
       shadow.querySelector<HTMLElement>(".tv-scope")!.textContent,
     ).toBe("chart · zoom");
+  });
+
+  it("preserves the chart page backdrop for inherited SVG colors", () => {
+    document.body.style.backgroundColor = "rgb(2, 11, 14)";
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      `<figure id="dark-chart" data-televizer-type="chart">
+        <svg><text fill="currentColor">60%</text></svg>
+      </figure>`,
+    );
+    const chart = document.querySelector<HTMLElement>("#dark-chart")!;
+    Object.defineProperty(chart, "getBoundingClientRect", {
+      configurable: true,
+      value: () => new DOMRect(100, 100, 640, 360),
+    });
+    televizer = new Televizer({ document }).mount();
+    televizer.focus(chart);
+    const frame = document
+      .querySelector("televizer-overlay")!
+      .shadowRoot!.querySelector<HTMLElement>(".tv-chart-frame")!;
+
+    expect(frame.style.getPropertyValue("--tv-chart-background")).toBe(
+      "rgb(2, 11, 14)",
+    );
   });
 
   it("switches a misclassified visualization to chart zoom with Z", () => {

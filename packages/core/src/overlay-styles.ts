@@ -233,7 +233,7 @@ export const overlayStyles = `
     overflow: hidden;
     border: 1px solid var(--tv-rule);
     border-radius: 12px;
-    background: #fff;
+    background: var(--tv-chart-background, #fff);
   }
   .tv-chart-main,
   .tv-chart-lens-surface {
@@ -250,7 +250,7 @@ export const overlayStyles = `
     overflow: hidden;
     border: 3px solid var(--tv-cyan);
     border-radius: 18px;
-    background: #fff;
+    background: var(--tv-chart-background, #fff);
     box-shadow: 0 18px 54px rgba(0,0,0,.34), 0 0 0 4px rgba(2,11,14,.72);
     pointer-events: none;
   }
